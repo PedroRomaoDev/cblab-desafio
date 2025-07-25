@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  nodered:
+    image: nodered/node-red
+    container_name: cblab-nodered-container
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./nodered_data:/data
+    restart: unless-stopped
+    environment:
+      - TZ=America/Sao_Paulo
+    networks:
+      - cblab-network
+
+networks:
+  cblab-network:
+    driver: bridge
