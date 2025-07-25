@@ -1,0 +1,5 @@
+node_modules
+
+
+# volumes do docker
+nodered_data
