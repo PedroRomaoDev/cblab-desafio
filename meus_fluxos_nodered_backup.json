@@ -1,0 +1,486 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "f5c2e2f3.5c11d8",
+        "type": "tab",
+        "label": "Simulação APIs (Mock Server)",
+        "disabled": false,
+        "info": "Este fluxo simula os 5 endpoints de API do desafio. Eles podem ser chamados por outras aplicações ou pelo próprio Node-RED."
+    },
+    {
+        "id": "9722db32eabf9af3",
+        "type": "tab",
+        "label": "Simulação Ingestão Data Lake",
+        "disabled": false,
+        "info": "Este fluxo simula a chamada das APIs e o armazenamento no data lake."
+    },
+    {
+        "id": "34e527bc9b233580",
+        "type": "tab",
+        "label": "Teste HTTP REQUEST",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "fa43794ca8eb021d",
+        "type": "axios-endpoint",
+        "name": "API Express Server",
+        "baseURL": "http://api-server:3001",
+        "caCertPath": "",
+        "rejectUnauthorized": true,
+        "proxyEnabled": false,
+        "proxyProtocol": "https",
+        "proxyHost": "",
+        "proxyPort": "",
+        "apiKeyKey": "",
+        "apiKeyAddTo": "headers"
+    },
+    {
+        "id": "3cc11d24.ff01a2",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
+        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "e3a8b2c1.9d7f0e",
+        "type": "http in",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "/bi/getFiscalInvoice",
+        "url": "/bi/getFiscalInvoice",
+        "method": "post",
+        "x": 160,
+        "y": 100,
+        "wires": [
+            [
+                "c9d0e1f2.8a7b6c"
+            ]
+        ]
+    },
+    {
+        "id": "c9d0e1f2.8a7b6c",
+        "type": "function",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "Gerar FiscalInvoice",
+        "func": "const busDt = msg.payload.busDt;\nconst storeId = msg.payload.storeId;\n\nif (!busDt || !storeId) {\n    node.warn(\"Missing busDt or storeId in payload\");\n    msg.statusCode = 400;\n    msg.payload = { error: \"busDt and storeId are required.\" };\n    return msg;\n}\n\n// Simula dados para a data e loja específicas\nconst data = [\n    {\n        \"id\": `fi-${storeId}-${busDt}-001`,\n        \"busDt\": busDt,\n        \"storeId\": storeId,\n        \"invoiceNumber\": `INV-${busDt.replace(/-/g, '')}-001`,\n        \"totalAmount\": 150.75,\n        \"taxes\": 15.07\n    },\n    {\n        \"id\": `fi-${storeId}-${busDt}-002`,\n        \"busDt\": busDt,\n        \"storeId\": storeId,\n        \"invoiceNumber\": `INV-${busDt.replace(/-/g, '')}-002`,\n        \"totalAmount\": 200.00,\n        \"taxes\": 20.00\n    }\n];\n\nmsg.payload = data;\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 390,
+        "y": 100,
+        "wires": [
+            [
+                "f1e2d3c4.a5b67d"
+            ]
+        ]
+    },
+    {
+        "id": "f1e2d3c4.a5b67d",
+        "type": "http response",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "",
+        "statusCode": "200",
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "x": 580,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "a1b2c3d4.e5f678",
+        "type": "http in",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "/res/getGuestChecks",
+        "url": "/res/getGuestChecks",
+        "method": "post",
+        "x": 160,
+        "y": 200,
+        "wires": [
+            [
+                "g7h8i9j0.k1l2m3"
+            ]
+        ]
+    },
+    {
+        "id": "g7h8i9j0.k1l2m3",
+        "type": "function",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "Gerar GuestChecks",
+        "func": "const busDt = msg.payload.busDt;\nconst storeId = msg.payload.storeId;\n\nif (!busDt || !storeId) {\n    node.warn(\"Missing busDt or storeId in payload\");\n    msg.statusCode = 400;\n    msg.payload = { error: \"busDt and storeId are required.\" };\n    return msg;\n}\n\n// Simula dados para a data e loja específicas\nconst data = [\n    {\n        \"id\": `gc-${storeId}-${busDt}-001`,\n        \"busDt\": busDt,\n        \"storeId\": storeId,\n        \"guestCheckId\": `GC-${busDt.replace(/-/g, '')}-001A`,\n        \"total\": 50.25,\n        \"items\": [\n            {\"menuItemId\": \"PIZZA_MARG\", \"quantity\": 1, \"price\": 40.00},\n            {\"menuItemId\": \"REFRIGERANTE\", \"quantity\": 1, \"price\": 10.25}\n        ],\n        \"taxes\": 5.00, // Campo antigo\n        \"serviceCharge\": 5.02\n    },\n    {\n        \"id\": `gc-${storeId}-${busDt}-002`,\n        \"busDt\": busDt,\n        \"storeId\": storeId,\n        \"guestCheckId\": `GC-${busDt.replace(/-/g, '')}-001B`,\n        \"total\": 100.50,\n        \"items\": [\n            {\"menuItemId\": \"PASTA_ALFREDO\", \"quantity\": 2, \"price\": 45.00},\n            {\"menuItemId\": \"SUCO\", \"quantity\": 1, \"price\": 10.50}\n        ],\n        \"taxation\": 10.00, // Campo novo para simular mudança\n        \"serviceCharge\": 10.05\n    }\n];\n\nmsg.payload = data;\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 390,
+        "y": 200,
+        "wires": [
+            [
+                "f1e2d3c4.a5b67d"
+            ]
+        ]
+    },
+    {
+        "id": "b1c2d3e4.f5g67h",
+        "type": "http in",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "/org/getChargeBack",
+        "url": "/org/getChargeBack",
+        "method": "post",
+        "x": 160,
+        "y": 300,
+        "wires": [
+            [
+                "h7i8j9k0.l1m2n3"
+            ]
+        ]
+    },
+    {
+        "id": "h7i8j9k0.l1m2n3",
+        "type": "function",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "Gerar ChargeBack",
+        "func": "const busDt = msg.payload.busDt;\nconst storeId = msg.payload.storeId;\n\nif (!busDt || !storeId) {\n    node.warn(\"Missing busDt or storeId in payload\");\n    msg.statusCode = 400;\n    msg.payload = { error: \"busDt and storeId are required.\" };\n    return msg;\n}\n\nconst data = [\n    {\n        \"id\": `cb-${storeId}-${busDt}-001`,\n        \"busDt\": busDt,\n        \"storeId\": storeId,\n        \"chargeBackId\": `CB-${busDt.replace(/-/g, '')}-001`,\n        \"amount\": 25.00\n    }\n];\n\nmsg.payload = data;\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 390,
+        "y": 300,
+        "wires": [
+            [
+                "f1e2d3c4.a5b67d"
+            ]
+        ]
+    },
+    {
+        "id": "c1d2e3f4.g5h67i",
+        "type": "http in",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "/trans/getTransactions",
+        "url": "/trans/getTransactions",
+        "method": "post",
+        "x": 160,
+        "y": 400,
+        "wires": [
+            [
+                "i7j8k9l0.m1n2o3"
+            ]
+        ]
+    },
+    {
+        "id": "i7j8k9l0.m1n2o3",
+        "type": "function",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "Gerar Transactions",
+        "func": "const busDt = msg.payload.busDt;\nconst storeId = msg.payload.storeId;\n\nif (!busDt || !storeId) {\n    node.warn(\"Missing busDt or storeId in payload\");\n    msg.statusCode = 400;\n    msg.payload = { error: \"busDt and storeId are required.\" };\n    return msg;\n}\n\nconst data = [\n    {\n        \"id\": `tr-${storeId}-${busDt}-001`,\n        \"busDt\": busDt,\n        \"storeId\": storeId,\n        \"transactionId\": `TRX-${busDt.replace(/-/g, '')}-001`,\n        \"type\": \"SALE\",\n        \"value\": 150.75\n    },\n    {\n        \"id\": `tr-${storeId}-${busDt}-002`,\n        \"busDt\": busDt,\n        \"storeId\": storeId,\n        \"transactionId\": `TRX-${busDt.replace(/-/g, '')}-002`,\n        \"type\": \"REFUND\",\n        \"value\": -20.00\n    }\n];\n\nmsg.payload = data;\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 390,
+        "y": 400,
+        "wires": [
+            [
+                "f1e2d3c4.a5b67d"
+            ]
+        ]
+    },
+    {
+        "id": "d1e2f3g4.h5i67j",
+        "type": "http in",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "/inv/getCashManagementDetails",
+        "url": "/inv/getCashManagementDetails",
+        "method": "post",
+        "x": 160,
+        "y": 500,
+        "wires": [
+            [
+                "j7k8l9m0.n1o2p3"
+            ]
+        ]
+    },
+    {
+        "id": "j7k8l9m0.n1o2p3",
+        "type": "function",
+        "z": "f5c2e2f3.5c11d8",
+        "name": "Gerar CashManagement",
+        "func": "const busDt = msg.payload.busDt;\nconst storeId = msg.payload.storeId;\n\nif (!busDt || !storeId) {\n    node.warn(\"Missing busDt or storeId in payload\");\n    msg.statusCode = 400;\n    msg.payload = { error: \"busDt and storeId are required.\" };\n    return msg;\n}\n\nconst data = [\n    {\n        \"id\": `cm-${storeId}-${busDt}-001`,\n        \"busDt\": busDt,\n        \"storeId\": storeId,\n        \"cashIn\": 500.00,\n        \"cashOut\": 100.00,\n        \"deposit\": 400.00\n    }\n];\n\nmsg.payload = data;\nmsg.statusCode = 200;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 390,
+        "y": 500,
+        "wires": [
+            [
+                "f1e2d3c4.a5b67d"
+            ]
+        ]
+    },
+    {
+        "id": "d08814f637759ab1",
+        "type": "inject",
+        "z": "9722db32eabf9af3",
+        "name": "Disparar Ingestão Diária",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"busDt\":\"2025-07-24\", \"stores\":[\"store_001\", \"store_002\"]}",
+        "payloadType": "json",
+        "x": 130,
+        "y": 120,
+        "wires": [
+            [
+                "448cb0703abd4688"
+            ]
+        ]
+    },
+    {
+        "id": "448cb0703abd4688",
+        "type": "function",
+        "z": "9722db32eabf9af3",
+        "name": "Preparar Chamadas API",
+        "func": "const busDt = msg.payload.busDt;\nconst stores = msg.payload.stores;\n\nconst endpoints = [\n    \"/bi/getFiscalInvoice\",\n    \"/res/getGuestChecks\",\n    \"/org/getChargeBack\",\n    \"/trans/getTransactions\",\n    \"/inv/getCashManagementDetails\"\n];\n\nconst msgs = [];\n\nstores.forEach(storeId => {\n    endpoints.forEach(endpoint => {\n        msgs.push({\n            payload: {\n                busDt: busDt,\n                storeId: storeId\n            },\n            url: `http://api-server:3001${endpoint}`, \n            apiName: endpoint.split('/').pop() ,\n            busDt: busDt,     // <-- ESTAS DUAS LINHAS SÃO ESSENCIAIS\n            storeId: storeId  // <-- PARA O NÓ \"PROCESSAR E SALVAR DADOS\"\n        });\n    });\n});\n\nmsg.payload = msgs; return msg",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 260,
+        "wires": [
+            [
+                "933eb5dd8f808392",
+                "c4af3478e4cae3d2"
+            ]
+        ]
+    },
+    {
+        "id": "03463646a0f7a00c",
+        "type": "file",
+        "z": "9722db32eabf9af3",
+        "name": "Salvar no Data Lake",
+        "filename": "filename",
+        "filenameType": "msg",
+        "appendNewline": false,
+        "createDir": true,
+        "overwriteFile": "false",
+        "encoding": "utf8",
+        "x": 1280,
+        "y": 380,
+        "wires": [
+            [
+                "af13c3269dc123f7"
+            ]
+        ]
+    },
+    {
+        "id": "af13c3269dc123f7",
+        "type": "debug",
+        "z": "9722db32eabf9af3",
+        "name": "Debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1250,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "8bf3596f473fc414",
+        "type": "debug",
+        "z": "9722db32eabf9af3",
+        "name": "debugando",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 670,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "fd9e4f9d88d6c383",
+        "type": "axios-request",
+        "z": "9722db32eabf9af3",
+        "name": "Chamar API (axios)",
+        "endpoint": "fa43794ca8eb021d",
+        "method": "post",
+        "url": "{{msg.url}}",
+        "responseType": "json",
+        "keepAlive": false,
+        "timeout": 30000,
+        "validateStatus": true,
+        "verboseOut": false,
+        "headers": [
+            {
+                "keyType": "str",
+                "keyValue": "Content-Type",
+                "valueType": "str",
+                "valueValue": "application/json"
+            }
+        ],
+        "params": [],
+        "x": 910,
+        "y": 200,
+        "wires": [
+            [
+                "af13c3269dc123f7",
+                "d9586210e5b863c4"
+            ]
+        ]
+    },
+    {
+        "id": "933eb5dd8f808392",
+        "type": "function",
+        "z": "9722db32eabf9af3",
+        "name": "Dividir Mensagens",
+        "func": "// Dividir Mensagens\n\n// O nó 'Preparar Chamadas API' retorna um array de objetos,\n// onde cada objeto já é uma mensagem completa (com payload, url, apiName).\n// Este nó irá enviar cada elemento deste array como uma mensagem separada.\n\nconst messages = msg.payload; // msg.payload é o array de mensagens\n\nif (!Array.isArray(messages)) {\n    node.error(\"Input to 'Dividir Mensagens' is not an array. Expected an array of message objects.\", msg);\n    return null; // Retorna null para parar o fluxo em caso de erro\n}\n\n// Itera sobre o array e envia cada objeto como uma nova mensagem\nfor (let i = 0; i < messages.length; i++) {\n    // Para cada objeto no array, cria uma nova mensagem e a envia\n    // É importante criar uma nova mensagem para evitar referências cruzadas\n    const newMessage = { ...messages[i] }; // Copia o objeto para uma nova mensagem\n    node.send(newMessage);\n}\n\n// Retorna null no final para indicar que todas as mensagens foram enviadas via node.send()\n// e que este nó não deve passar a mensagem original adiante automaticamente.\nreturn null;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 140,
+        "wires": [
+            [
+                "8bf3596f473fc414",
+                "fd9e4f9d88d6c383"
+            ]
+        ]
+    },
+    {
+        "id": "c4af3478e4cae3d2",
+        "type": "debug",
+        "z": "9722db32eabf9af3",
+        "name": "DEBUG SAIDA PREPARAR CHAMADAS",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "d9586210e5b863c4",
+        "type": "function",
+        "z": "9722db32eabf9af3",
+        "name": "Processar e Salvar Dados",
+        "func": "// Processar e Salvar Dados\n\nconst apiName = msg.apiName;\nconst busDt = msg.busDt; // Pega diretamente da mensagem original\nconst storeId = msg.storeId; // Pega diretamente da mensagem original\n\nif (!apiName || !busDt || !storeId) {\n    node.error(\"Missing apiName, busDt or storeId in msg for filename creation.\", msg);\n    return null;\n}\n\n// Lógica para lidar com a mudança de esquema (guestChecks.taxes para guestChecks.taxation)\nif (apiName === 'getGuestChecks' && Array.isArray(msg.payload)) {\n    msg.payload = msg.payload.map(item => {\n        if (item.taxes !== undefined && item.taxation === undefined) {\n            item.taxation = item.taxes;\n            delete item.taxes;\n            node.warn(`Schema change: 'taxes' converted to 'taxation' for item ID: ${item.id}`);\n        }\n        return item;\n    });\n}\n\n// Estrutura de pastas para o data lake simulado\nconst year = busDt.substring(0, 4);\nconst month = busDt.substring(5, 7);\nconst day = busDt.substring(8, 10);\n\nconst filePath = `/data/raw/${apiName}/${year}/${month}/${day}/${storeId}/data_${Date.now()}.json`;\n\nmsg.filename = filePath;\nmsg.payload = JSON.stringify(msg.payload, null, 2); // Formata o JSON para salvar\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1030,
+        "y": 340,
+        "wires": [
+            [
+                "03463646a0f7a00c",
+                "af13c3269dc123f7"
+            ]
+        ]
+    },
+    {
+        "id": "570fc824922c5bb3",
+        "type": "inject",
+        "z": "34e527bc9b233580",
+        "name": "Disparar teste",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{ \"busDt\": \"2025-07-24\", \"storeId\": \"store_001\" }",
+        "payloadType": "json",
+        "x": 130,
+        "y": 240,
+        "wires": [
+            [
+                "7b7c71ddcf067ed5"
+            ]
+        ]
+    },
+    {
+        "id": "7b7c71ddcf067ed5",
+        "type": "http request",
+        "z": "34e527bc9b233580",
+        "name": "Teste API EXPRESS",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://api-server:3001/bi/getFiscalInvoice",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 300,
+        "y": 160,
+        "wires": [
+            [
+                "6d849890d6a85861"
+            ]
+        ]
+    },
+    {
+        "id": "6d849890d6a85861",
+        "type": "debug",
+        "z": "34e527bc9b233580",
+        "name": "resultado teste",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 220,
+        "wires": []
+    }
+]
