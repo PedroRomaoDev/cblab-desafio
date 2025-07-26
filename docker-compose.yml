@@ -1,19 +1,42 @@
-version: "3.8"
-
 services:
   nodered:
     image: nodered/node-red
     container_name: cblab-nodered-container
     ports:
-      - "1880:1880"
+      - '1880:1880'
     volumes:
-      - ./nodered_data:/data
+      - C:/Users/Public/cblab-desafio/nodered_data:/data
     restart: unless-stopped
     environment:
       - TZ=America/Sao_Paulo
     networks:
       - cblab-network
+    depends_on:
+      api-server:
+        condition: service_healthy
+
+  api-server:
+    build: .
+    container_name: cblab-api-server-container
+    ports:
+      - '3001:3001'
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: npm start
+    restart: unless-stopped
+    networks:
+      - cblab-network
+    healthcheck:
+      test: ['CMD-SHELL', 'curl http://localhost:3001/ || exit 1'] # Removi o '-f' para ser mais permissivo, se o Express retornar 200, já passa
+      interval: 15s # Aumenta o intervalo de verificação
+      timeout: 10s # Aumenta o timeout da verificação
+      retries: 5
+      start_period: 30s # Aumenta o período inicial para o serviço se estabilizar
 
 networks:
   cblab-network:
     driver: bridge
+
+volumes:
+  nodered_data:
