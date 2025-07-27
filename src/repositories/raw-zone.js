@@ -1,5 +1,3 @@
-// src/repositories/raw-data.js
-
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -8,9 +6,8 @@ import path from 'path';
  * Implementa métodos para ler e salvar arquivos JSON.
  */
 export class RawDataRepository {
+  // Certifique-se do 'export' aqui
   constructor() {
-    // Define o caminho base para a Raw Zone
-    // process.cwd() retorna o diretório de trabalho atual (que é /app dentro do contêiner Docker)
     this.basePath = path.join(process.cwd(), 'nodered_data', 'data', 'raw');
   }
 
@@ -41,7 +38,6 @@ export class RawDataRepository {
           const fileContent = await fs.readFile(filePath, 'utf8');
           try {
             const jsonData = JSON.parse(fileContent);
-            // Concatena se for um array, ou adiciona o objeto se for único
             allData = allData.concat(
               Array.isArray(jsonData) ? jsonData : [jsonData],
             );
@@ -59,7 +55,7 @@ export class RawDataRepository {
         console.log(
           `[INFO] RawDataRepository: Nenhuma pasta encontrada para ${apiName}/${busDt}/${storeId}`,
         );
-        return []; // Retorna array vazio se a pasta não existir
+        return [];
       }
       console.error(
         `[ERROR] RawDataRepository: Falha ao ler dados de ${fullPath}:`,
@@ -88,7 +84,7 @@ export class RawDataRepository {
       day,
       storeId,
     );
-    await fs.mkdir(outputDir, { recursive: true }); // Garante que a pasta exista
+    await fs.mkdir(outputDir, { recursive: true });
     const outputFilePath = path.join(outputDir, `data_${Date.now()}.json`);
     await fs.writeFile(outputFilePath, JSON.stringify(data, null, 2), 'utf8');
     return outputFilePath;
