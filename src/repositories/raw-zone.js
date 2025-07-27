@@ -6,18 +6,18 @@ import path from 'path';
  * Implementa métodos para ler e salvar arquivos JSON.
  */
 export class RawDataRepository {
-  // Certifique-se do 'export' aqui
   constructor() {
     this.basePath = path.join(process.cwd(), 'nodered_data', 'data', 'raw');
   }
 
-  /**
+  /** JSDoc
    * Lê todos os arquivos JSON de uma pasta específica na Raw Zone.
    * @param {string} apiName - O nome da API (ex: 'getGuestChecks').
    * @param {string} busDt - A data de negócio (formato 'YYYY-MM-DD').
    * @param {string} storeId - O ID da loja.
    * @returns {Promise<Array<Object>>} - Um array de objetos JSON lidos.
    */
+
   async getByApiDateStore(apiName, busDt, storeId) {
     const [year, month, day] = busDt.split('-');
     const fullPath = path.join(
@@ -65,7 +65,7 @@ export class RawDataRepository {
     }
   }
 
-  /**
+  /** JSDoc
    * Salva dados JSON em um arquivo na Raw Zone.
    * Usado para simular o salvamento que o Node-RED faz.
    * @param {string} apiName - O nome da API.
