@@ -68,4 +68,29 @@ export class RawDataRepository {
       throw new Error(`Falha ao acessar Raw Zone: ${error.message}`);
     }
   }
+
+  /**
+   * Salva dados JSON em um arquivo na Raw Zone.
+   * Usado para simular o salvamento que o Node-RED faz.
+   * @param {string} apiName - O nome da API.
+   * @param {string} busDt - A data de negócio.
+   * @param {string} storeId - O ID da loja.
+   * @param {Array<Object>} data - Os dados a serem salvos.
+   * @returns {Promise<string>} - O caminho do arquivo salvo.
+   */
+  async saveToRawZone(apiName, busDt, storeId, data) {
+    const [year, month, day] = busDt.split('-');
+    const outputDir = path.join(
+      this.basePath,
+      apiName,
+      year,
+      month,
+      day,
+      storeId,
+    );
+    await fs.mkdir(outputDir, { recursive: true }); // Garante que a pasta exista
+    const outputFilePath = path.join(outputDir, `data_${Date.now()}.json`);
+    await fs.writeFile(outputFilePath, JSON.stringify(data, null, 2), 'utf8');
+    return outputFilePath;
+  }
 }
