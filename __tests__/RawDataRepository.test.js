@@ -2,6 +2,14 @@ import { RawDataRepository } from '../src/repositories/raw-zone.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterAll(() => {
+  console.error.mockRestore();
+});
+
 // Mock do módulo fs.promises
 jest.mock('fs', () => ({
   promises: {
