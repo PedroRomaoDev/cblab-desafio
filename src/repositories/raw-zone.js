@@ -7,7 +7,7 @@ import path from 'path';
  */
 export class RawDataRepository {
   constructor() {
-    this.basePath = path.join(process.cwd(), 'nodered_data', 'data', 'raw');
+    this.basePath = path.join(process.cwd(), 'nodered_data', 'raw');
   }
 
   /** JSDoc
