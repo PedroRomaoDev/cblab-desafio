@@ -1,12 +1,21 @@
-// src/usecases/process-data.js
-import { promises as fs } from 'fs'; // Para iterar diretórios
-import path from 'path'; // Para construir caminhos
+import { promises as fs } from 'fs';
+import path from 'path';
+import { ValidationError } from '../errors/validation.js'; // NOVO: Importa ValidationError
 
 /**
  * Use Case para processar dados brutos da Raw Zone e salvá-los na Processed Zone.
  * Contém a lógica de negócio de transformação.
  */
 export class ProcessDataUseCase {
+  // Define a lista de nomes de API válidos como uma propriedade estática
+  static VALID_API_NAMES = [
+    'getFiscalInvoice',
+    'getGuestChecks',
+    'getChargeBack',
+    'getTransactions',
+    'getCashManagementDetails',
+  ];
+
   /**
    * @param {RawDataRepository} rawDataRepository - Repositório para ler dados brutos.
    * @param {ProcessedDataRepository} processedDataRepository - Repositório para salvar dados processados.
@@ -38,8 +47,16 @@ export class ProcessDataUseCase {
     );
 
     const { busDt, storeId, apiName } = filters;
-    let totalProcessedCount = 0; // Contador de itens processados
-    let filterMatchFound = false; // Flag para saber se os filtros encontraram pelo menos um caminho
+    let totalProcessedCount = 0;
+    let anyPathMatchedFilters = false;
+
+    // **NOVA VALIDAÇÃO: apiName lançando ValidationError**
+    if (apiName && !ProcessDataUseCase.VALID_API_NAMES.includes(apiName)) {
+      throw new ValidationError(
+        `Nome da API '${apiName}' inválido. Nomes válidos são: ${ProcessDataUseCase.VALID_API_NAMES.join(', ')}.`,
+      );
+    }
+    // **FIM DA NOVA VALIDAÇÃO**
 
     try {
       // 1. Verifica se a pasta rawZoneBasePath existe
@@ -53,14 +70,30 @@ export class ProcessDataUseCase {
           return {
             status: 'no_data_source',
             message: `Raw Zone base path '${this.rawZoneBasePath}' não encontrada.`,
-          }; // Retorno específico
+          };
         }
-        throw error; // Relança outros erros de acesso
+        throw error;
       }
 
       let apiFoldersToProcess = [];
       if (apiName) {
         apiFoldersToProcess = [apiName];
+        const specificApiPath = path.join(this.rawZoneBasePath, apiName);
+        try {
+          await fs.access(specificApiPath);
+          anyPathMatchedFilters = true;
+        } catch (error) {
+          if (error.code === 'ENOENT') {
+            console.log(
+              `[INFO] ProcessDataUseCase: Pasta da API '${apiName}' não encontrada para o filtro.`,
+            );
+            return {
+              status: 'filter_no_match',
+              message: `Nenhum dado correspondente ao filtro 'apiName: ${apiName}' foi encontrado na Raw Zone.`,
+            };
+          }
+          throw error;
+        }
       } else {
         const entries = await fs.readdir(this.rawZoneBasePath, {
           withFileTypes: true,
@@ -68,9 +101,12 @@ export class ProcessDataUseCase {
         apiFoldersToProcess = entries
           .filter((entry) => entry.isDirectory())
           .map((entry) => entry.name);
+        if (apiFoldersToProcess.length > 0) {
+          anyPathMatchedFilters = true;
+        }
       }
 
-      if (apiFoldersToProcess.length === 0) {
+      if (apiFoldersToProcess.length === 0 && !apiName) {
         console.log(
           '[INFO] ProcessDataUseCase: Nenhuma pasta de API encontrada na Raw Zone para processar.',
         );
@@ -78,7 +114,7 @@ export class ProcessDataUseCase {
           status: 'no_api_folders',
           message:
             'Nenhuma pasta de API encontrada na Raw Zone para processar.',
-        }; // Retorno específico
+        };
       }
 
       for (const currentApiName of apiFoldersToProcess) {
@@ -86,12 +122,26 @@ export class ProcessDataUseCase {
 
         let yearFoldersToProcess = [];
         if (busDt) {
-          yearFoldersToProcess = [busDt.substring(0, 4)];
+          const year = busDt.substring(0, 4);
+          const specificYearPath = path.join(apiPath, year);
+          try {
+            await fs.access(specificYearPath);
+            yearFoldersToProcess = [year];
+            anyPathMatchedFilters = true;
+          } catch (error) {
+            if (error.code === 'ENOENT') {
+              continue;
+            }
+            throw error;
+          }
         } else {
           const entries = await fs.readdir(apiPath, { withFileTypes: true });
           yearFoldersToProcess = entries
             .filter((entry) => entry.isDirectory())
             .map((entry) => entry.name);
+          if (yearFoldersToProcess.length > 0) {
+            anyPathMatchedFilters = true;
+          }
         }
 
         for (const year of yearFoldersToProcess) {
@@ -99,12 +149,26 @@ export class ProcessDataUseCase {
 
           let monthFoldersToProcess = [];
           if (busDt) {
-            monthFoldersToProcess = [busDt.substring(5, 7)];
+            const month = busDt.substring(5, 7);
+            const specificMonthPath = path.join(yearPath, month);
+            try {
+              await fs.access(specificMonthPath);
+              monthFoldersToProcess = [month];
+              anyPathMatchedFilters = true;
+            } catch (error) {
+              if (error.code === 'ENOENT') {
+                continue;
+              }
+              throw error;
+            }
           } else {
             const entries = await fs.readdir(yearPath, { withFileTypes: true });
             monthFoldersToProcess = entries
               .filter((entry) => entry.isDirectory())
               .map((entry) => entry.name);
+            if (monthFoldersToProcess.length > 0) {
+              anyPathMatchedFilters = true;
+            }
           }
 
           for (const month of monthFoldersToProcess) {
@@ -112,7 +176,18 @@ export class ProcessDataUseCase {
 
             let dayFoldersToProcess = [];
             if (busDt) {
-              dayFoldersToProcess = [busDt.substring(8, 10)];
+              const day = busDt.substring(8, 10);
+              const specificDayPath = path.join(monthPath, day);
+              try {
+                await fs.access(specificDayPath);
+                dayFoldersToProcess = [day];
+                anyPathMatchedFilters = true;
+              } catch (error) {
+                if (error.code === 'ENOENT') {
+                  continue;
+                }
+                throw error;
+              }
             } else {
               const entries = await fs.readdir(monthPath, {
                 withFileTypes: true,
@@ -120,6 +195,9 @@ export class ProcessDataUseCase {
               dayFoldersToProcess = entries
                 .filter((entry) => entry.isDirectory())
                 .map((entry) => entry.name);
+              if (dayFoldersToProcess.length > 0) {
+                anyPathMatchedFilters = true;
+              }
             }
 
             for (const day of dayFoldersToProcess) {
@@ -127,7 +205,17 @@ export class ProcessDataUseCase {
 
               let storeFoldersToProcess = [];
               if (storeId) {
-                storeFoldersToProcess = [storeId];
+                const specificStorePath = path.join(dayPath, storeId);
+                try {
+                  await fs.access(specificStorePath);
+                  storeFoldersToProcess = [storeId];
+                  anyPathMatchedFilters = true;
+                } catch (error) {
+                  if (error.code === 'ENOENT') {
+                    continue;
+                  }
+                  throw error;
+                }
               } else {
                 const entries = await fs.readdir(dayPath, {
                   withFileTypes: true,
@@ -135,30 +223,13 @@ export class ProcessDataUseCase {
                 storeFoldersToProcess = entries
                   .filter((entry) => entry.isDirectory())
                   .map((entry) => entry.name);
+                if (storeFoldersToProcess.length > 0) {
+                  anyPathMatchedFilters = true;
+                }
               }
 
               for (const currentStoreId of storeFoldersToProcess) {
                 const currentBusDt = `${year}-${month}-${day}`;
-
-                // Verifica se o caminho específico para os filtros existe antes de chamar o repositório
-                const specificPath = path.join(
-                  this.rawZoneBasePath,
-                  currentApiName,
-                  year,
-                  month,
-                  day,
-                  currentStoreId,
-                );
-                try {
-                  await fs.access(specificPath); // Tenta acessar o diretório
-                  filterMatchFound = true; // Pelo menos um filtro encontrou um caminho
-                } catch (error) {
-                  if (error.code === 'ENOENT') {
-                    // console.log(`[INFO] ProcessDataUseCase: Caminho filtrado não encontrado: ${specificPath}`);
-                    continue; // Pula para a próxima iteração se o caminho filtrado não existir
-                  }
-                  throw error; // Relança outros erros de acesso
-                }
 
                 const rawData = await this.rawDataRepository.getByApiDateStore(
                   currentApiName,
@@ -170,7 +241,6 @@ export class ProcessDataUseCase {
                   console.log(
                     `[INFO] ProcessDataUseCase: Nenhuns dados brutos encontrados para ${currentApiName}/${currentBusDt}/${currentStoreId}.`,
                   );
-                  // Não há dados para esta combinação, apenas continua o loop
                   continue;
                 }
 
@@ -213,9 +283,8 @@ export class ProcessDataUseCase {
 
       // Retorno final baseado nos resultados
       if (totalProcessedCount === 0 && (busDt || storeId || apiName)) {
-        // Se filtros foram aplicados e nada foi processado,
-        // e se nenhum caminho correspondente aos filtros existia
-        if (!filterMatchFound) {
+        if (!anyPathMatchedFilters) {
+          // Se filtros foram aplicados e nenhum caminho correspondente foi encontrado
           return {
             status: 'filter_no_match',
             message:
@@ -230,13 +299,17 @@ export class ProcessDataUseCase {
         };
       }
 
-      // Retorno de sucesso com a contagem total para quando há dados ou nenhum filtro
       return {
         status: 'success',
         message: `Processamento concluído. Total de ${totalProcessedCount} itens processados.`,
         processedCount: totalProcessedCount,
       };
     } catch (error) {
+      // Captura erros lançados pelos repositórios ou outros erros inesperados
+      if (error instanceof ValidationError) {
+        // NOVO: Captura ValidationError
+        throw error; // Relança ValidationError para o Controller tratar
+      }
       console.error(
         '[FATAL] ProcessDataUseCase: Ocorreu um erro durante o processamento de dados:',
         error,
