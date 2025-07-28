@@ -5,7 +5,7 @@ services:
     ports:
       - '1880:1880'
     volumes:
-      - C:/Users/Public/cblab-desafio/nodered_data:/data
+      - ./nodered_data:/data
     restart: unless-stopped
     environment:
       - TZ=America/Sao_Paulo
