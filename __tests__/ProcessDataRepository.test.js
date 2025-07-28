@@ -55,7 +55,6 @@ describe('ProcessedDataRepository', () => {
         path.join(
           process.cwd(),
           'nodered_data',
-          'data',
           'processed',
           apiName,
           '2023',
@@ -169,10 +168,7 @@ describe('ProcessedDataRepository', () => {
   describe('getItemById', () => {
     it('deve retornar item encontrado por id', async () => {
       mockFs.readdir.mockImplementation(async (dirPath) => {
-        if (
-          dirPath ===
-          path.join(process.cwd(), 'nodered_data', 'data', 'processed')
-        ) {
+        if (dirPath === path.join(process.cwd(), 'nodered_data', 'processed')) {
           return [
             { name: 'api1', isDirectory: () => true, isFile: () => false },
           ];

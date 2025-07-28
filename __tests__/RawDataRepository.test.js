@@ -29,7 +29,6 @@ describe('RawDataRepository', () => {
   const fullPath = path.join(
     process.cwd(),
     'nodered_data',
-    'data',
     'raw',
     apiName,
     '2024',
