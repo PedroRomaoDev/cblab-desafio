@@ -1,6 +1,4 @@
 // src/usecases/process-data.js
-
-// Importa os repositórios necessários como dependências
 import { promises as fs } from 'fs'; // Para iterar diretórios
 import path from 'path'; // Para construir caminhos
 
@@ -19,15 +17,8 @@ export class ProcessDataUseCase {
         'ProcessDataUseCase requires RawDataRepository and ProcessedDataRepository instances.',
       );
     }
-    // Atribui as instâncias dos repositórios às propriedades da classe
-    // O linter estava reclamando porque os nomes 'rawDataRepository' e 'processedDataRepository'
-    // dos parâmetros não eram usados diretamente como variáveis locais, mas sim como 'this.rawDataRepository'.
-    // A atribuição direta a 'this' é correta, o aviso é apenas uma questão de estilo/detecção do linter.
-    // Não há necessidade de criar variáveis 'const' locais se elas não forem usadas de outra forma.
-    // O aviso é benigno e não afeta a funcionalidade.
     this.rawDataRepository = rawDataRepository;
     this.processedDataRepository = processedDataRepository;
-    // Caminho base para a Raw Zone, usado para iterar sobre as pastas de API
     this.rawZoneBasePath = path.join(process.cwd(), 'nodered_data', 'raw');
   }
 
@@ -38,7 +29,7 @@ export class ProcessDataUseCase {
    * @param {string} [filters.busDt] - Data de negócio para processar (formato 'YYYY-MM-DD').
    * @param {string} [filters.storeId] - ID da loja para processar.
    * @param {string} [filters.apiName] - Nome da API para processar.
-   * @returns {Promise<void>}
+   * @returns {Promise<{status: string, message: string, processedCount?: number}>} - Objeto com o resultado do processamento.
    */
   async execute(filters = {}) {
     console.log(
@@ -47,9 +38,11 @@ export class ProcessDataUseCase {
     );
 
     const { busDt, storeId, apiName } = filters;
+    let totalProcessedCount = 0; // Contador de itens processados
+    let filterMatchFound = false; // Flag para saber se os filtros encontraram pelo menos um caminho
 
     try {
-      // Verifica se a pasta rawZoneBasePath existe antes de tentar ler
+      // 1. Verifica se a pasta rawZoneBasePath existe
       try {
         await fs.access(this.rawZoneBasePath);
       } catch (error) {
@@ -57,7 +50,10 @@ export class ProcessDataUseCase {
           console.warn(
             `[WARN] ProcessDataUseCase: Raw Zone base path '${this.rawZoneBasePath}' não encontrada. Nenhuns dados para processar.`,
           );
-          return; // Sai se a pasta base não existir
+          return {
+            status: 'no_data_source',
+            message: `Raw Zone base path '${this.rawZoneBasePath}' não encontrada.`,
+          }; // Retorno específico
         }
         throw error; // Relança outros erros de acesso
       }
@@ -78,7 +74,11 @@ export class ProcessDataUseCase {
         console.log(
           '[INFO] ProcessDataUseCase: Nenhuma pasta de API encontrada na Raw Zone para processar.',
         );
-        return;
+        return {
+          status: 'no_api_folders',
+          message:
+            'Nenhuma pasta de API encontrada na Raw Zone para processar.',
+        }; // Retorno específico
       }
 
       for (const currentApiName of apiFoldersToProcess) {
@@ -138,9 +138,28 @@ export class ProcessDataUseCase {
               }
 
               for (const currentStoreId of storeFoldersToProcess) {
-                const currentBusDt = `${year}-${month}-${day}`; // Reconstroi a data para uso no repositório
+                const currentBusDt = `${year}-${month}-${day}`;
 
-                // Lê os dados brutos usando o repositório
+                // Verifica se o caminho específico para os filtros existe antes de chamar o repositório
+                const specificPath = path.join(
+                  this.rawZoneBasePath,
+                  currentApiName,
+                  year,
+                  month,
+                  day,
+                  currentStoreId,
+                );
+                try {
+                  await fs.access(specificPath); // Tenta acessar o diretório
+                  filterMatchFound = true; // Pelo menos um filtro encontrou um caminho
+                } catch (error) {
+                  if (error.code === 'ENOENT') {
+                    // console.log(`[INFO] ProcessDataUseCase: Caminho filtrado não encontrado: ${specificPath}`);
+                    continue; // Pula para a próxima iteração se o caminho filtrado não existir
+                  }
+                  throw error; // Relança outros erros de acesso
+                }
+
                 const rawData = await this.rawDataRepository.getByApiDateStore(
                   currentApiName,
                   currentBusDt,
@@ -151,12 +170,11 @@ export class ProcessDataUseCase {
                   console.log(
                     `[INFO] ProcessDataUseCase: Nenhuns dados brutos encontrados para ${currentApiName}/${currentBusDt}/${currentStoreId}.`,
                   );
+                  // Não há dados para esta combinação, apenas continua o loop
                   continue;
                 }
 
-                // Aplica a lógica de transformação (ex: taxes para taxation)
                 let processedData = rawData.map((item) => {
-                  // Cria uma cópia rasa do item para evitar modificações no objeto original
                   const newItem = { ...item };
                   if (
                     currentApiName === 'getGuestChecks' &&
@@ -165,16 +183,15 @@ export class ProcessDataUseCase {
                   ) {
                     newItem.taxation = newItem.taxes;
                     delete newItem.taxes;
-                    // console.warn(`[WARN] ProcessDataUseCase: Esquema alterado: 'taxes' para 'taxation' para item ID: ${item.id}`);
                   }
                   return {
-                    ...newItem, // Usa o newItem modificado
-                    _processedAt: new Date().toISOString(), // Metadado de processamento
+                    ...newItem,
+                    _processedAt: new Date().toISOString(),
                     _processorVersion: '1.0',
                   };
                 });
+                totalProcessedCount += processedData.length;
 
-                // Salva os dados processados usando o repositório
                 const outputPath =
                   await this.processedDataRepository.saveToProcessedZone(
                     currentApiName,
@@ -193,12 +210,38 @@ export class ProcessDataUseCase {
       console.log(
         '[INFO] ProcessDataUseCase: Processamento de dados concluído.',
       );
+
+      // Retorno final baseado nos resultados
+      if (totalProcessedCount === 0 && (busDt || storeId || apiName)) {
+        // Se filtros foram aplicados e nada foi processado,
+        // e se nenhum caminho correspondente aos filtros existia
+        if (!filterMatchFound) {
+          return {
+            status: 'filter_no_match',
+            message:
+              'Nenhum dado correspondente aos filtros fornecidos foi encontrado na Raw Zone.',
+          };
+        }
+        // Se filterMatchFound é true, mas totalProcessedCount é 0, significa que os diretórios existiam, mas estavam vazios.
+        return {
+          status: 'success',
+          message: `Processamento concluído. Total de 0 itens processados. Os diretórios existiam, mas estavam vazios para os filtros.`,
+          processedCount: 0,
+        };
+      }
+
+      // Retorno de sucesso com a contagem total para quando há dados ou nenhum filtro
+      return {
+        status: 'success',
+        message: `Processamento concluído. Total de ${totalProcessedCount} itens processados.`,
+        processedCount: totalProcessedCount,
+      };
     } catch (error) {
       console.error(
         '[FATAL] ProcessDataUseCase: Ocorreu um erro durante o processamento de dados:',
         error,
       );
-      throw new Error(`Falha no Use Case de Processamento: ${error.message}`); // Lança o erro para o Controller
+      throw new Error(`Falha no Use Case de Processamento: ${error.message}`);
     }
   }
 }
