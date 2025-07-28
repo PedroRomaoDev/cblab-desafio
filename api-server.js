@@ -1,7 +1,6 @@
-// api-server.js
-
 import express from 'express';
 import bodyParser from 'body-parser';
+import { makeProcessDataController } from './src/factories/controllers/process-data.js';
 
 const app = express();
 const PORT = 3001;
@@ -16,11 +15,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- Rota para Healthcheck (NOVA) ---
+// --- rota para healthcheck do docker ---
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'API is running and healthy' });
 });
-// --- Fim da Rota para Healthcheck ---
 
 const validatePayload = (req, res, next) => {
   const { busDt, storeId } = req.body;
@@ -32,7 +30,13 @@ const validatePayload = (req, res, next) => {
   next();
 };
 
-// --- Endpoints de API Simulados (já existentes) ---
+app.post('/processarDados', async (req, res) => {
+  // Adicionado 'async' aqui
+  const processDataController = makeProcessDataController(); // Instanciação DENTRO da rota
+  await processDataController.execute(req, res); // Chama o método execute
+});
+
+// --- Endpoints de API Simulados ---
 
 // 1. POST /bi/getFiscalInvoice
 app.post('/bi/getFiscalInvoice', validatePayload, (req, res) => {
@@ -166,7 +170,7 @@ app.post('/inv/getCashManagementDetails', validatePayload, (req, res) => {
       cashIn: 500.0,
       cashOut: 100.0,
       deposit: 400.0,
-      cashierName: 'John Doe',
+      cashierName: 'Pedro Henrique',
       source: 'CashManagementDetails',
     },
   ];
