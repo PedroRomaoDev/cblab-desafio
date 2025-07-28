@@ -3,12 +3,7 @@ import path from 'path';
 
 export class ProcessedDataRepository {
   constructor() {
-    this.basePath = path.join(
-      process.cwd(),
-      'nodered_data',
-      'data',
-      'processed',
-    );
+    this.basePath = path.join(process.cwd(), 'nodered_data', 'processed');
   }
 
   async saveToProcessedZone(apiName, busDt, storeId, data) {
