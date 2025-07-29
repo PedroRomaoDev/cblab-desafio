@@ -1,6 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { makeProcessDataController } from './src/factories/controllers/process-data.js';
+import { makeQueryDataController } from './src/factories/controllers/query-data.js'; // Importa a fábrica para QueryData
+import { makeItemQueryController } from './src/factories/controllers/item-query.js'; // Importa a fábrica para ItemQuery
 
 const app = express();
 const PORT = 3001;
@@ -34,6 +36,20 @@ app.post('/processarDados', async (req, res) => {
   // Adicionado 'async' aqui
   const processDataController = makeProcessDataController(); // Instanciação DENTRO da rota
   await processDataController.execute(req, res); // Chama o método execute
+});
+
+// Rota para buscar dados processados de um tipo de API específico (POST /query/:apiName)
+app.post('/query/:apiName', async (req, res) => {
+  // Adicionado 'async'
+  const queryDataController = makeQueryDataController(); // Instanciação DENTRO da rota
+  await queryDataController.execute(req, res); // Chama o método execute
+});
+
+// Rota para buscar um item específico por ID (POST /query/item)
+app.post('/query/item', async (req, res) => {
+  // Adicionado 'async'
+  const itemQueryController = makeItemQueryController(); // Instanciação DENTRO da rota
+  await itemQueryController.execute(req, res); // Chama o método execute
 });
 
 // --- Endpoints de API Simulados ---
