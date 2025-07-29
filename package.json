@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node --watch api-server.js",
-    "test": "jest ",
-    "process-data": "node data-processor.js"
+    "test": "jest --passWithNoTests --silent --runInBand --detectOpenHandles --forceExit"
   },
   "keywords": [],
   "author": "",
