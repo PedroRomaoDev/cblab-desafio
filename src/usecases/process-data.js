@@ -1,13 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { ValidationError } from '../errors/validation.js'; // Importa ValidationError
-
-/**
- * Use Case para processar dados brutos da Raw Zone e salvá-los na Processed Zone.
- * Contém a lógica de negócio de transformação.
- */
+import { ValidationError } from '../errors/validation.js';
 export class ProcessDataUseCase {
-  // Define a lista de nomes de API válidos como uma propriedade estática
   static VALID_API_NAMES = [
     'getFiscalInvoice',
     'getGuestChecks',
@@ -15,11 +9,6 @@ export class ProcessDataUseCase {
     'getTransactions',
     'getCashManagementDetails',
   ];
-
-  /**
-   * @param {RawDataRepository} rawDataRepository - Repositório para ler dados brutos.
-   * @param {ProcessedDataRepository} processedDataRepository - Repositório para salvar dados processados.
-   */
   constructor(rawDataRepository, processedDataRepository) {
     if (!rawDataRepository || !processedDataRepository) {
       throw new Error(
@@ -42,7 +31,7 @@ export class ProcessDataUseCase {
    */
   async execute(filters = {}) {
     console.log(
-      `[INFO] ProcessDataUseCase: Iniciando processamento de dados com filtros:`,
+      `ProcessDataUseCase: Iniciando processamento de dados com filtros:`,
       filters,
     );
 
