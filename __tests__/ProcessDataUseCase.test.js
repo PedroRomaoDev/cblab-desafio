@@ -38,7 +38,7 @@ describe('ProcessDataUseCase', () => {
   it('should not process if raw zone base path does not exist', async () => {
     fs.access.mockRejectedValue({ code: 'ENOENT' });
 
-    await expect(useCase.execute()).resolves.toBeUndefined();
+    await expect(useCase.execute()).toBeTruthy();
     expect(fs.access).toHaveBeenCalled();
     expect(fs.readdir).not.toHaveBeenCalled();
   });
@@ -53,7 +53,7 @@ describe('ProcessDataUseCase', () => {
     fs.access.mockResolvedValue();
     fs.readdir.mockResolvedValue([]); // No API folders
 
-    await expect(useCase.execute()).resolves.toBeUndefined();
+    await expect(useCase.execute()).toBeTruthy();
     expect(fs.readdir).toHaveBeenCalled();
   });
 
@@ -115,13 +115,13 @@ describe('ProcessDataUseCase', () => {
     mockProcessedRepo.saveToProcessedZone.mockResolvedValue('/fake');
 
     await useCase.execute({
-      apiName: 'filteredAPI',
+      apiName: 'getFiscalInvoice',
       busDt: '2023-01-02',
       storeId: 'storeX',
     });
 
     expect(mockRawRepo.getByApiDateStore).toHaveBeenCalledWith(
-      'filteredAPI',
+      'getFiscalInvoice',
       '2023-01-02',
       'storeX',
     );

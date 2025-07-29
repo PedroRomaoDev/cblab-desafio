@@ -1,5 +1,17 @@
 import { ProcessDataController } from '../src/controllers/process-data.js';
 
+beforeAll(() => {
+  jest.spyOn(console, 'info').mockImplementation(() => {});
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterAll(() => {
+  console.info.mockRestore();
+  console.warn.mockRestore();
+  console.error.mockRestore();
+});
+
 describe('ProcessDataController', () => {
   let mockUseCase;
   let controller;
@@ -8,13 +20,21 @@ describe('ProcessDataController', () => {
 
   beforeEach(() => {
     mockUseCase = {
-      execute: jest.fn(),
+      execute: jest.fn().mockResolvedValue({
+        status: 'success',
+        message: 'Processamento de dados iniciado com sucesso.',
+        processedCount: 10,
+      }),
     };
 
     controller = new ProcessDataController(mockUseCase);
 
     mockReq = {
-      body: { apiName: 'getGuestChecks', busDt: '2024-01-01', storeId: '123' },
+      body: {
+        apiName: 'getGuestChecks',
+        busDt: '2020-07-31',
+        storeId: 'store_002',
+      },
     };
     mockRes = {
       status: jest.fn().mockReturnThis(),
@@ -29,6 +49,7 @@ describe('ProcessDataController', () => {
     expect(mockRes.status).toHaveBeenCalledWith(202);
     expect(mockRes.json).toHaveBeenCalledWith({
       message: 'Processamento de dados iniciado com sucesso.',
+      processedCount: 10,
     });
   });
 
