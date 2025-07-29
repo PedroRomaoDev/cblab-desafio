@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { ValidationError } from '../errors/validation.js'; // NOVO: Importa ValidationError
+import { ValidationError } from '../errors/validation.js'; // Importa ValidationError
 
 /**
  * Use Case para processar dados brutos da Raw Zone e salvá-los na Processed Zone.
@@ -50,15 +50,47 @@ export class ProcessDataUseCase {
     let totalProcessedCount = 0;
     let anyPathMatchedFilters = false;
 
-    // **NOVA VALIDAÇÃO: apiName lançando ValidationError**
-    if (apiName && !ProcessDataUseCase.VALID_API_NAMES.includes(apiName)) {
-      throw new ValidationError(
-        `Nome da API '${apiName}' inválido. Nomes válidos são: ${ProcessDataUseCase.VALID_API_NAMES.join(', ')}.`,
-      );
+    // **VALIDAÇÃO APRIMORADA: apiName**
+    if (apiName !== undefined && apiName !== null) {
+      if (typeof apiName !== 'string' || apiName.trim() === '') {
+        throw new ValidationError(
+          `Nome da API '${apiName}' inválido. Deve ser uma string não vazia.`,
+        );
+      }
+      if (!ProcessDataUseCase.VALID_API_NAMES.includes(apiName)) {
+        throw new ValidationError(
+          `Nome da API '${apiName}' inválido. Nomes válidos são: ${ProcessDataUseCase.VALID_API_NAMES.join(', ')}.`,
+        );
+      }
     }
-    // **FIM DA NOVA VALIDAÇÃO**
+
+    // **VALIDAÇÃO APRIMORADA: busDt**
+    const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/; // Regex para formato YYYY-MM-DD
+    if (busDt !== undefined && busDt !== null) {
+      if (typeof busDt !== 'string') {
+        throw new ValidationError(
+          `Formato da data de negócio (busDt) '${busDt}' inválido. Deve ser uma string.`,
+        );
+      }
+      if (!DATE_REGEX.test(busDt)) {
+        throw new ValidationError(
+          `Formato da data de negócio (busDt) '${busDt}' inválido. Use o formato YYYY-MM-DD.`,
+        );
+      }
+    }
+
+    // **VALIDAÇÃO APRIMORADA: storeId**
+    if (storeId !== undefined && storeId !== null) {
+      if (typeof storeId !== 'string' || storeId.trim() === '') {
+        throw new ValidationError(
+          `ID da loja (storeId) '${storeId}' inválido. Deve ser uma string não vazia.`,
+        );
+      }
+    }
+    // **FIM DAS VALIDAÇÕES APRIMORADAS**
 
     try {
+      // Início do bloco try principal
       // 1. Verifica se a pasta rawZoneBasePath existe
       try {
         await fs.access(this.rawZoneBasePath);
@@ -275,39 +307,35 @@ export class ProcessDataUseCase {
               }
             }
           }
-        }
-      }
-      console.log(
-        '[INFO] ProcessDataUseCase: Processamento de dados concluído.',
-      );
+          console.log(
+            '[INFO] ProcessDataUseCase: Processamento de dados concluído.',
+          );
 
-      // Retorno final baseado nos resultados
-      if (totalProcessedCount === 0 && (busDt || storeId || apiName)) {
-        if (!anyPathMatchedFilters) {
-          // Se filtros foram aplicados e nenhum caminho correspondente foi encontrado
+          if (totalProcessedCount === 0 && (busDt || storeId || apiName)) {
+            if (!anyPathMatchedFilters) {
+              return {
+                status: 'filter_no_match',
+                message:
+                  'Nenhum dado correspondente aos filtros fornecidos foi encontrado na Raw Zone.',
+              };
+            }
+            return {
+              status: 'success',
+              message: `Processamento concluído. Total de 0 itens processados. Os diretórios existiam, mas estavam vazios para os filtros.`,
+              processedCount: 0,
+            };
+          }
+
           return {
-            status: 'filter_no_match',
-            message:
-              'Nenhum dado correspondente aos filtros fornecidos foi encontrado na Raw Zone.',
+            status: 'success',
+            message: `Processamento concluído. Total de ${totalProcessedCount} itens processados.`,
+            processedCount: totalProcessedCount,
           };
         }
-        // Se filterMatchFound é true, mas totalProcessedCount é 0, significa que os diretórios existiam, mas estavam vazios.
-        return {
-          status: 'success',
-          message: `Processamento concluído. Total de 0 itens processados. Os diretórios existiam, mas estavam vazios para os filtros.`,
-          processedCount: 0,
-        };
       }
-
-      return {
-        status: 'success',
-        message: `Processamento concluído. Total de ${totalProcessedCount} itens processados.`,
-        processedCount: totalProcessedCount,
-      };
     } catch (error) {
-      // Captura erros lançados pelos repositórios ou outros erros inesperados
+      // Este é o catch do try principal
       if (error instanceof ValidationError) {
-        // NOVO: Captura ValidationError
         throw error; // Relança ValidationError para o Controller tratar
       }
       console.error(
