@@ -1,3 +1,4 @@
+// src/controllers/query-data.js
 import { badRequest, serverError, ok, notFound } from './helpers/http.js';
 import { ValidationError } from '../errors/validation.js'; // Importa ValidationError
 
@@ -42,7 +43,21 @@ export class QueryDataController {
           'Nome da API inválido ou ausente na URL para a consulta.',
         );
       }
-      // O Use Case já fará validações mais detalhadas de formato.
+
+      // **NOVA VALIDAÇÃO AQUI:** Se storeId é fornecido, busDt também deve ser.
+      // Isso evita que o repositório precise escanear todas as datas para encontrar uma loja.
+      if (
+        storeId !== undefined &&
+        storeId !== null &&
+        storeId.trim() !== '' &&
+        !busDt
+      ) {
+        throw new ValidationError(
+          'Se storeId for fornecido, busDt também deve ser fornecido para uma consulta eficiente.',
+        );
+      }
+
+      // O Use Case já fará validações mais detalhadas de formato (YYYY-MM-DD, etc.).
 
       const data = await this.queryDataUseCase.execute(apiName, {
         busDt,
