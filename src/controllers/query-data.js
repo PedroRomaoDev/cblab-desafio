@@ -66,7 +66,7 @@ export class QueryDataController {
 
       if (data.length === 0) {
         const response = notFound({
-          message: `Nenhuns dados processados encontrados para ${apiName} com os filtros fornecidos.`,
+          message: `Nenhum dado processado encontrado para ${apiName} com os filtros fornecidos.`,
         });
         return res.status(response.statusCode).json(response.body);
       }

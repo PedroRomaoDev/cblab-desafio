@@ -1,5 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import { v4 as uuidv4 } from 'uuid';
 import { makeProcessDataController } from './src/factories/controllers/process-data.js';
 import { makeQueryDataController } from './src/factories/controllers/query-data.js'; // Importa a fábrica para QueryData
 import { makeItemQueryController } from './src/factories/controllers/item-query.js'; // Importa a fábrica para ItemQuery
@@ -32,7 +33,7 @@ const validatePayload = (req, res, next) => {
   next();
 };
 
-app.post('/processarDados', async (req, res) => {
+app.post('/process-data', async (req, res) => {
   // Adicionado 'async' aqui
   const processDataController = makeProcessDataController(); // Instanciação DENTRO da rota
   await processDataController.execute(req, res); // Chama o método execute
@@ -46,7 +47,7 @@ app.post('/query/:apiName', async (req, res) => {
 });
 
 // Rota para buscar um item específico por ID (POST /query/item)
-app.post('/query/item', async (req, res) => {
+app.post('/item-lookup', async (req, res) => {
   // Adicionado 'async'
   const itemQueryController = makeItemQueryController(); // Instanciação DENTRO da rota
   await itemQueryController.execute(req, res); // Chama o método execute
@@ -59,7 +60,7 @@ app.post('/bi/getFiscalInvoice', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
     {
-      id: `fi-${storeId}-${busDt}-001`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       invoiceNumber: `INV-${busDt.replace(/-/g, '')}-001`,
@@ -68,7 +69,7 @@ app.post('/bi/getFiscalInvoice', validatePayload, (req, res) => {
       source: 'FiscalInvoice',
     },
     {
-      id: `fi-${storeId}-${busDt}-002`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       invoiceNumber: `INV-${busDt.replace(/-/g, '')}-002`,
@@ -85,7 +86,7 @@ app.post('/res/getGuestChecks', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
     {
-      id: `gc-${storeId}-${busDt}-001`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       guestCheckId: `GC-${busDt.replace(/-/g, '')}-001A`,
@@ -99,7 +100,7 @@ app.post('/res/getGuestChecks', validatePayload, (req, res) => {
       source: 'GuestChecks',
     },
     {
-      id: `gc-${storeId}-${busDt}-002`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       guestCheckId: `GC-${busDt.replace(/-/g, '')}-001B`,
@@ -113,7 +114,7 @@ app.post('/res/getGuestChecks', validatePayload, (req, res) => {
       source: 'GuestChecks',
     },
     {
-      id: `gc-${storeId}-${busDt}-003-legacy`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       guestCheckId: `GC-${busDt.replace(/-/g, '')}-001C-LEGACY`,
@@ -135,7 +136,7 @@ app.post('/org/getChargeBack', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
     {
-      id: `cb-${storeId}-${busDt}-001`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       chargeBackId: `CB-${busDt.replace(/-/g, '')}-001`,
@@ -152,7 +153,7 @@ app.post('/trans/getTransactions', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
     {
-      id: `tr-${storeId}-${busDt}-001`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       transactionId: `TRX-${busDt.replace(/-/g, '')}-001`,
@@ -162,7 +163,7 @@ app.post('/trans/getTransactions', validatePayload, (req, res) => {
       source: 'Transactions',
     },
     {
-      id: `tr-${storeId}-${busDt}-002`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       transactionId: `TRX-${busDt.replace(/-/g, '')}-002`,
@@ -180,7 +181,7 @@ app.post('/inv/getCashManagementDetails', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
     {
-      id: `cm-${storeId}-${busDt}-001`,
+      id: uuidv4(),
       busDt: busDt,
       storeId: storeId,
       cashIn: 500.0,
