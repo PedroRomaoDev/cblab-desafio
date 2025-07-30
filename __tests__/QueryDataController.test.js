@@ -57,7 +57,9 @@ describe('QueryDataController', () => {
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
-      message: expect.stringContaining('Nenhuns dados processados encontrados'),
+      message: expect.stringContaining(
+        'Nenhum dado processado encontrado para getGuestChecks com os filtros fornecidos.',
+      ),
     });
   });
 
