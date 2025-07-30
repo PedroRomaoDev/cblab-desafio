@@ -1,4 +1,4 @@
-import { RawDataRepository } from '../src/repositories/raw-zone.js';
+import { RawDataRepository } from '../src/repositories/raw-data.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 

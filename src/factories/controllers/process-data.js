@@ -1,7 +1,7 @@
 // src/factories/controllers/process-data.js
 
 // Importa as classes necessárias para montar o controlador
-import { RawDataRepository } from '../../repositories/raw-zone.js';
+import { RawDataRepository } from '../../repositories/raw-data.js';
 import { ProcessedDataRepository } from '../../repositories/processed-data.js';
 import { ProcessDataUseCase } from '../../usecases/process-data.js';
 import { ProcessDataController } from '../../controllers/process-data.js';
