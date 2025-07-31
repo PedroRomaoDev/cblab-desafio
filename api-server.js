@@ -7,6 +7,9 @@ import {
   makeItemQueryController,
   makeRawDataController,
 } from './src/factories/controllers/index.js';
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 const PORT = 3001;
@@ -61,6 +64,16 @@ app.post('/item-lookup', async (req, res) => {
   const itemQueryController = makeItemQueryController();
   await itemQueryController.execute(req, res);
 });
+
+//SWAGGER
+const __dirname = path.resolve();
+const swaggerDocument = JSON.parse(
+  fs.readFileSync(path.join(__dirname, './docs/swagger.json'), 'utf8'),
+);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// Server Swagger UI
+//localhost:3001/docs
 
 // --- Endpoints de API Simulados ---
 

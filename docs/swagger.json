@@ -1,0 +1,359 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API de Dados do Desafio CBLab",
+    "version": "1.0.0",
+    "description": "Esta API serve como a **camada de interface para um pipeline de dados simulado**, projetado para receber ingestão, processamento e consulta de informações de receita de uma rede de restaurantes. A arquitetura segue um padrão de **camadas (Controllers -> Use Cases -> Repositórios)**, garantindo modularidade e testabilidade. Os dados são gerenciados em um **Data Lake improvisado**, com zonas `Raw` (dados brutos) e `Processed` (dados transformados e padronizados), e são disponibilizados para consumo por equipes de Inteligência de Negócios (BI) e outras aplicações. Inclui funcionalidades para disparar transformações e realizar consultas flexíveis sobre os dados curados."
+  },
+  "tags": [
+    {
+      "name": "Consulta de Dados Brutos",
+      "description": "Endpoint para consultar dados brutos da Raw Zone."
+    },
+    {
+      "name": "Processamento de Dados",
+      "description": "Endpoint para disparar o pipeline de transformação de dados."
+    },
+    {
+      "name": "Consulta de Dados Processados",
+      "description": "Endpoints para consultar dados limpos e padronizados da Processed Zone."
+    }
+  ],
+  "paths": {
+    "/raw-data": {
+      "get": {
+        "tags": ["Consulta de Dados Brutos"],
+        "summary": "Obtém dados brutos da Raw Zone por filtros.",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apiName",
+            "type": "string",
+            "enum": [
+              "getFiscalInvoice",
+              "getGuestChecks",
+              "getChargeBack",
+              "getTransactions",
+              "getCashManagementDetails"
+            ],
+            "required": true,
+            "description": "Nome da API para consultar."
+          },
+          {
+            "in": "query",
+            "name": "busDt",
+            "type": "string",
+            "format": "date",
+            "required": true,
+            "description": "Data de negócio (YYYY-MM-DD)."
+          },
+          {
+            "in": "query",
+            "name": "storeId",
+            "type": "string",
+            "required": true,
+            "description": "ID da loja."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso. Retorna dados brutos.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "example": {
+                  "id": "uuid-exemplo",
+                  "busDt": "2020-07-31",
+                  "storeId": "store_001",
+                  "totalAmount": 150.75,
+                  "taxes": 15.07
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/process-data": {
+      "post": {
+        "tags": ["Processamento de Dados"],
+        "summary": "Dispara o pipeline de processamento de dados da Raw Zone para a Processed Zone.",
+        "description": "Este endpoint aceita filtros para processamento seletivo. Se nenhum filtro for fornecido, todos os dados da Raw Zone serão processados. Exemplo: { }",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Filtros para processamento seletivo.",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "apiName": {
+                  "type": "string",
+                  "enum": [
+                    "getFiscalInvoice",
+                    "getGuestChecks",
+                    "getChargeBack",
+                    "getTransactions",
+                    "getCashManagementDetails"
+                  ],
+                  "example": "getGuestChecks",
+                  "description": "Nome da API específica para processar."
+                },
+                "busDt": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2020-07-31",
+                  "description": "Data de negócio para processar (YYYY-MM-DD)."
+                },
+                "storeId": {
+                  "type": "string",
+                  "example": "store_001",
+                  "description": "ID da loja para processar."
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Processamento de dados iniciado com sucesso.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Processamento de dados iniciado com sucesso."
+                },
+                "processedCount": { "type": "number", "example": 36 }
+              }
+            }
+          },
+          "200": {
+            "description": "Processamento concluído, mas 0 itens foram processados (diretórios vazios).",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Processamento concluído. Total de 0 itens processados. Os diretórios existiam para os filtros, mas estavam vazios."
+                },
+                "processedCount": { "type": "number", "example": 0 }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/query/{apiName}": {
+      "post": {
+        "tags": ["Consulta de Dados Processados"],
+        "summary": "Consulta dados processados de um tipo de API específico com filtros.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "apiName",
+            "type": "string",
+            "enum": [
+              "getFiscalInvoice",
+              "getGuestChecks",
+              "getChargeBack",
+              "getTransactions",
+              "getCashManagementDetails"
+            ],
+            "required": true,
+            "description": "Nome da API para consultar."
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Filtros para consulta.",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "busDt": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2020-07-31",
+                  "description": "Data de negócio para filtrar (YYYY-MM-DD)."
+                },
+                "storeId": {
+                  "type": "string",
+                  "example": "store_001",
+                  "description": "ID da loja para filtrar."
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso. Retorna dados processados.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "example": {
+                  "id": "uuid-exemplo",
+                  "busDt": "2020-07-31",
+                  "storeId": "store_001",
+                  "totalAmount": 150.75,
+                  "taxation": 15.07,
+                  "_processedAt": "2025-07-29T23:07:38.094Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/item-lookup": {
+      "post": {
+        "tags": ["Consulta de Dados Processados"],
+        "summary": "Busca um item específico por ID único nos dados processados.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "ID do item a ser buscado.",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "example": "e08074fc-ccf1-4412-af8f-12dd2e2e2da38",
+                  "description": "ID único do item a ser buscado."
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso. Retorna o item encontrado.",
+            "schema": {
+              "type": "object",
+              "example": {
+                "id": "e08074fc-ccf1-4412-af8f-12dd2e22da38",
+                "busDt": "2025-07-24",
+                "storeId": "store_001",
+                "totalAmount": 150.75,
+                "taxation": 15.07,
+                "_processedAt": "2025-07-29T23:07:38.094Z"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadRequestItemLookup"
+          },
+          "404": {
+            "$ref": "#/responses/NotFoundItemLookup"
+          },
+          "500": {
+            "$ref": "#/responses/ServerError"
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "BadRequest": {
+      "description": "Requisição inválida devido a parâmetros ausentes ou com formato incorreto.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Nome da API 'pedro' inválido. Nomes válidos são: getFiscalInvoice, getGuestChecks, getChargeBack, getTransactions, getCashManagementDetails."
+          }
+        }
+      }
+    },
+    "BadRequestItemLookup": {
+      "description": "Requisição inválida devido a parâmetros ausentes ou com formato incorreto.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "ID do item inválido ou ausente no corpo da requisição."
+          }
+        }
+      }
+    },
+    "NotFound": {
+      "description": "Recurso não encontrado para os filtros fornecidos.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Nenhuns dados brutos encontrados para getFiscalInvoice/2025-07-24/store_001."
+          }
+        }
+      }
+    },
+    "NotFoundItemLookup": {
+      "description": "Recurso não encontrado para os filtros fornecidos.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Item com ID fornecido não encontrado nos dados processados."
+          }
+        }
+      }
+    },
+    "ServerError": {
+      "description": "Erro interno do servidor.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Erro interno do servidor ao processar dados."
+          }
+        }
+      }
+    }
+  }
+}
