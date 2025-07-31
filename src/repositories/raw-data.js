@@ -1,10 +1,5 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-
-/**
- * Repositório para acesso aos dados brutos na Raw Zone do Data Lake.
- * Implementa métodos para ler e salvar arquivos JSON.
- */
 export class RawDataRepository {
   constructor() {
     this.basePath = path.join(process.cwd(), 'nodered_data', 'raw');

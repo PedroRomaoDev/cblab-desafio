@@ -1,16 +1,5 @@
-// src/usecases/query-data.js
-
-// Importa o repositório necessário como dependência
-import { ValidationError } from '../errors/validation.js'; // Importa ValidationError
-
-/**
- * Use Case para consultar dados na Processed Zone com base em filtros.
- * Contém a lógica de negócio para buscar e filtrar dados processados.
- */
+import { ValidationError } from '../errors/validation.js';
 export class QueryDataUseCase {
-  /**
-   * @param {ProcessedDataRepository} processedDataRepository - Repositório para ler dados processados.
-   */
   constructor(processedDataRepository) {
     if (!processedDataRepository) {
       throw new Error(
@@ -20,8 +9,8 @@ export class QueryDataUseCase {
     this.processedDataRepository = processedDataRepository;
   }
 
-  /**
-   * Executa a consulta de dados processados.
+  /** JSDoc
+   * executa a consulta de dados processados.
    * @param {string} apiName - O nome da API (ex: 'getGuestChecks') para a qual buscar dados.
    * @param {Object} [filters] - Filtros opcionais para a consulta.
    * @param {string} [filters.busDt] - Data de negócio para filtrar (formato 'YYYY-MM-DD').
@@ -34,13 +23,13 @@ export class QueryDataUseCase {
       filters,
     );
 
-    // Validações de negócio simples para os parâmetros de entrada
+    // validações de negócio simples para os parâmetros de entrada
     if (!apiName || typeof apiName !== 'string' || apiName.trim() === '') {
       throw new ValidationError(
         'Nome da API inválido ou ausente para a consulta.',
       );
     }
-    const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/; // Regex para formato YYYY-MM-DD
+    const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
     if (filters.busDt !== undefined && filters.busDt !== null) {
       if (typeof filters.busDt !== 'string') {
         throw new ValidationError(
@@ -67,7 +56,7 @@ export class QueryDataUseCase {
     const { busDt, storeId } = filters;
 
     try {
-      // O repositório já lida com a lógica de navegação de pastas e leitura
+      // o repositório ja lida com a lógica de navegação de pastas e leitura
       const data = await this.processedDataRepository.getByApiDateStore(
         apiName,
         busDt,
@@ -78,9 +67,9 @@ export class QueryDataUseCase {
       );
       return data;
     } catch (error) {
-      // Relança o erro com uma mensagem mais contextual para a camada superior (Controller)
+      // manda o erro dnv com uma mensagem mais contextual para a camada superior (Controller)
       if (error instanceof ValidationError) {
-        // Se for um erro de validação já tratado, relança
+        // se for um erro de validação já tratado, relança
         throw error;
       }
       console.error(

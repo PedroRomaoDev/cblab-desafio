@@ -1,13 +1,8 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { ValidationError } from '../errors/validation.js'; // Importa ValidationError
+import { ValidationError } from '../errors/validation.js';
 
-/**
- * Use Case para processar dados brutos da Raw Zone e salvá-los na Processed Zone.
- * Contém a lógica de negócio de transformação.
- */
 export class ProcessDataUseCase {
-  // Define a lista de nomes de API válidos como uma propriedade estática
   static VALID_API_NAMES = [
     'getFiscalInvoice',
     'getGuestChecks',
@@ -16,10 +11,6 @@ export class ProcessDataUseCase {
     'getCashManagementDetails',
   ];
 
-  /**
-   * @param {RawDataRepository} rawDataRepository - Repositório para ler dados brutos.
-   * @param {ProcessedDataRepository} processedDataRepository - Repositório para salvar dados processados.
-   */
   constructor(rawDataRepository, processedDataRepository) {
     if (!rawDataRepository || !processedDataRepository) {
       throw new Error(
@@ -31,16 +22,6 @@ export class ProcessDataUseCase {
     this.rawZoneBasePath = path.join(process.cwd(), 'nodered_data', 'raw');
   }
 
-  /**
-   * Executa o processo de transformação de dados.
-   * Pode processar todos os dados ou dados específicos com base em filtros.
-   * @param {Object} [filters] - Filtros opcionais para processamento seletivo.
-   * @param {string} [filters.busDt] - Data de negócio para processar (formato 'YYYY-MM-DD').
-   * @param {string} [filters.busDtEnd] - Data de negócio final para processar (formato 'YYYY-MM-DD'). NOVO: Para range de datas.
-   * @param {string} [filters.storeId] - ID da loja para processar.
-   * @param {string} [filters.apiName] - Nome da API para processar.
-   * @returns {Promise<{status: string, message: string, processedCount?: number}>} - Objeto com o resultado do processamento.
-   */
   async execute(filters = {}) {
     console.log(
       `[INFO] ProcessDataUseCase: Iniciando processamento de dados com filtros:`,
@@ -58,7 +39,6 @@ export class ProcessDataUseCase {
       storeId !== undefined ||
       apiName !== undefined;
 
-    // **VALIDAÇÃO APRIMORADA: apiName**
     if (apiName !== undefined && apiName !== null) {
       if (typeof apiName !== 'string' || apiName.trim() === '') {
         throw new ValidationError(
@@ -72,8 +52,7 @@ export class ProcessDataUseCase {
       }
     }
 
-    // **VALIDAÇÃO APRIMORADA: busDt e busDtEnd**
-    const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/; // Regex para formato YYYY-MM-DD
+    const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
     if (busDt !== undefined && busDt !== null) {
       if (typeof busDt !== 'string' || !DATE_REGEX.test(busDt)) {
         throw new ValidationError(
@@ -94,7 +73,6 @@ export class ProcessDataUseCase {
       }
     }
 
-    // **VALIDAÇÃO APRIMORADA: storeId**
     if (storeId !== undefined && storeId !== null) {
       if (typeof storeId !== 'string' || storeId.trim() === '') {
         throw new ValidationError(
@@ -102,11 +80,8 @@ export class ProcessDataUseCase {
         );
       }
     }
-    // **FIM DAS VALIDAÇÕES APRIMORADAS**
 
     try {
-      // Início do bloco try principal que captura erros fatais
-      // 1. Verifica se a pasta rawZoneBasePath existe
       try {
         await fs.access(this.rawZoneBasePath);
       } catch (error) {
@@ -122,10 +97,8 @@ export class ProcessDataUseCase {
         throw error;
       }
 
-      // --- Lógica de Coleta de Caminhos para Processar ---
       const pathsToProcess = [];
 
-      // Função auxiliar para listar diretórios de forma segura
       const listDirectories = async (currentPath) => {
         try {
           const entries = await fs.readdir(currentPath, {
@@ -134,16 +107,16 @@ export class ProcessDataUseCase {
           return entries.filter((e) => e.isDirectory()).map((e) => e.name);
         } catch (error) {
           if (error.code === 'ENOENT') {
-            return []; // Retorna vazio se o diretório não existe (não é um erro fatal para listagem)
+            return [];
           }
-          throw error; // Relança outros erros
+          throw error;
         }
       };
 
       const apiFolders = apiName
         ? [apiName]
         : await listDirectories(this.rawZoneBasePath);
-      let foundMatchingPathForFilters = false; // Flag para saber se os filtros apontam para caminhos existentes
+      let foundMatchingPathForFilters = false;
 
       for (const currentApiName of apiFolders) {
         const apiPath = path.join(this.rawZoneBasePath, currentApiName);
@@ -172,7 +145,6 @@ export class ProcessDataUseCase {
             for (const day of dayFolders) {
               const currentBusDt = `${year}-${month}-${day}`;
 
-              // Filtragem de range de datas
               if (busDt && currentBusDt < busDt) continue;
               if (busDtEnd && currentBusDt > busDtEnd) continue;
 
@@ -184,10 +156,9 @@ export class ProcessDataUseCase {
 
               for (const currentStoreId of storeFolders) {
                 const fullStorePath = path.join(dayPath, currentStoreId);
-                // Verifica se o caminho final da loja existe no disco
                 try {
                   await fs.access(fullStorePath);
-                  foundMatchingPathForFilters = true; // Pelo menos um caminho que corresponde aos filtros existe no disco
+                  foundMatchingPathForFilters = true;
                   pathsToProcess.push({
                     apiName: currentApiName,
                     busDt: currentBusDt,
@@ -195,10 +166,9 @@ export class ProcessDataUseCase {
                   });
                 } catch (error) {
                   if (error.code === 'ENOENT') {
-                    // Caminho não encontrado, apenas ignora e continua
                     continue;
                   }
-                  throw error; // Relança outros erros
+                  throw error;
                 }
               }
             }
@@ -206,12 +176,8 @@ export class ProcessDataUseCase {
         }
       }
 
-      // --- Verificação de Caminhos Coletados ---
       if (pathsToProcess.length === 0) {
         if (hasFiltersApplied) {
-          // Se filtros foram aplicados, mas nenhum caminho final com dados foi encontrado (diretórios vazios ou não correspondentes)
-          // Usamos 'foundMatchingPathForFilters' para diferenciar entre filtro que não encontrou NENHUM caminho
-          // e filtro que encontrou caminhos, mas eles estavam vazios.
           if (!foundMatchingPathForFilters) {
             return {
               status: 'filter_no_match',
@@ -219,14 +185,12 @@ export class ProcessDataUseCase {
                 'Nenhum dado correspondente aos filtros fornecidos foi encontrado na Raw Zone.',
             };
           }
-          // Se foundMatchingPathForFilters é true, mas pathsToProcess.length é 0, significa que os diretórios existiam, mas estavam vazios.
           return {
             status: 'success',
             message: `Processamento concluído. Total de 0 itens processados. Os diretórios existiam para os filtros, mas estavam vazios.`,
             processedCount: 0,
           };
         } else {
-          // Se nenhum filtro e nenhuma pasta de API encontrada na Raw Zone
           console.log(
             '[INFO] ProcessDataUseCase: Nenhuma pasta de API encontrada na Raw Zone para processar.',
           );
@@ -238,7 +202,6 @@ export class ProcessDataUseCase {
         }
       }
 
-      // --- Início do Loop de Processamento Real ---
       for (const pathInfo of pathsToProcess) {
         const {
           apiName: currentApiName,
@@ -292,16 +255,14 @@ export class ProcessDataUseCase {
         '[INFO] ProcessDataUseCase: Processamento de dados concluído.',
       );
 
-      // Retorno final de sucesso
       return {
         status: 'success',
         message: `Processamento concluído. Total de ${totalProcessedCount} itens processados.`,
         processedCount: totalProcessedCount,
       };
     } catch (error) {
-      // Este é o catch do try principal
       if (error instanceof ValidationError) {
-        throw error; // Relança ValidationError para o Controller tratar
+        throw error;
       }
       console.error(
         '[FATAL] ProcessDataUseCase: Ocorreu um erro durante o processamento de dados:',

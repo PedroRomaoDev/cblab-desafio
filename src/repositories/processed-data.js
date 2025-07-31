@@ -18,7 +18,6 @@ export class ProcessedDataRepository {
     );
     await fs.mkdir(outputDir, { recursive: true });
 
-    // Use Date.now() mas evite colisões se executar muito rápido: uma alternativa pode ser incluir nano time, ou um UUID
     const outputFilePath = path.join(
       outputDir,
       `processed_data_${Date.now()}.json`,
@@ -63,7 +62,7 @@ export class ProcessedDataRepository {
       return allData;
     } catch (error) {
       if (error.code === 'ENOENT') {
-        // Pasta não existe, retorna vazio — bom para casos com filtros inexistentes
+        // Pasta não existe, retorna vazio
         console.info(
           `[INFO] Pasta não encontrada para ${apiName} nos filtros indicados.`,
         );

@@ -1,14 +1,7 @@
 import { badRequest, serverError, ok, notFound } from './helpers/http.js';
-import { ValidationError } from '../errors/validation.js'; // Importa ValidationError
+import { ValidationError } from '../errors/validation.js';
 
-/**
- * Controller para consultar um item específico por ID na Processed Zone.
- * Lida com as requisições HTTP e orquestra o ItemQueryUseCase.
- */
 export class ItemQueryController {
-  /**
-   * @param {ItemQueryUseCase} itemQueryUseCase - O Use Case de consulta de item.
-   */
   constructor(itemQueryUseCase) {
     if (!itemQueryUseCase) {
       throw new Error(
@@ -18,29 +11,19 @@ export class ItemQueryController {
     this.itemQueryUseCase = itemQueryUseCase;
   }
 
-  /**
-   * Método principal para lidar com a requisição HTTP POST para buscar um item por ID.
-   * O ID do item é passado no corpo da requisição.
-   * Ex: POST /query/item
-   * Body: { "id": "GC-YYYYMMDD-XXXA" }
-   * @param {Object} req - Objeto de requisição Express.
-   * @param {Object} res - Objeto de resposta Express.
-   */
   async execute(req, res) {
-    const { id } = req.body; // ID do item a ser buscado no corpo da requisição
+    const { id } = req.body;
 
     console.log(
       `[INFO] ItemQueryController: Recebida requisição POST para buscar item com ID: ${id}`,
     );
 
     try {
-      // Validação de Requisição (básica antes de passar para o Use Case)
       if (!id || typeof id !== 'string' || id.trim() === '') {
         throw new ValidationError(
           'ID do item inválido ou ausente no corpo da requisição.',
         );
       }
-      // O Use Case já fará validações mais detalhadas se necessário.
 
       const item = await this.itemQueryUseCase.execute(id);
 

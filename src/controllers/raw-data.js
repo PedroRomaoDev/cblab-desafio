@@ -1,38 +1,23 @@
 import { badRequest, serverError, ok, notFound } from './helpers/http.js';
 import { ValidationError } from '../errors/validation.js';
 
-/**
- * Controller para expor dados da Raw Zone via API.
- */
 export class RawDataController {
-  /**
-   * @param {RawDataUseCase} rawDataUseCase - Use Case para consultar dados brutos.
-   */
   constructor(rawDataUseCase) {
-    // NOVO: Recebe RawDataUseCase
     if (!rawDataUseCase) {
-      // NOVO: Validação para RawDataUseCase
       throw new Error('RawZoneController requires a RawDataUseCase instance.');
     }
-    this.rawDataUseCase = rawDataUseCase; // NOVO: Atribui RawDataUseCase
+    this.rawDataUseCase = rawDataUseCase;
   }
 
-  /**
-   * Obtém dados brutos da Raw Zone com base nos parâmetros de query.
-   * Ex: GET /raw-zone?apiName=getFiscalInvoice&busDt=2025-07-24&storeId=store_001
-   * @param {Object} req - Objeto de requisição Express.
-   * @param {Object} res - Objeto de resposta Express.
-   */
   async getRawData(req, res) {
-    const { apiName, busDt, storeId } = req.query; // Parâmetros de query para filtros
+    const { apiName, busDt, storeId } = req.query;
 
     console.log(
       `[INFO] RawZoneController: Recebida requisição GET para raw data: ${apiName}/${busDt}/${storeId}`,
     );
 
     try {
-      // O Use Case agora lida com as validações e a chamada ao repositório
-      const data = await this.rawDataUseCase.execute(apiName, busDt, storeId); // NOVO: Chama RawDataUseCase.execute()
+      const data = await this.rawDataUseCase.execute(apiName, busDt, storeId);
 
       if (data.length === 0) {
         const response = notFound({

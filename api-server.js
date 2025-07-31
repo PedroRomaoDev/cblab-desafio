@@ -1,10 +1,12 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
-import { makeProcessDataController } from './src/factories/controllers/process-data.js';
-import { makeQueryDataController } from './src/factories/controllers/query-data.js'; // Importa a fábrica para QueryData
-import { makeItemQueryController } from './src/factories/controllers/item-query.js'; // Importa a fábrica para ItemQuery
-import { makeRawDataController } from './src/factories/controllers/raw-data.js';
+import {
+  makeProcessDataController,
+  makeQueryDataController,
+  makeItemQueryController,
+  makeRawDataController,
+} from './src/factories/controllers/index.js';
 
 const app = express();
 const PORT = 3001;
@@ -34,36 +36,35 @@ const validatePayload = (req, res, next) => {
   next();
 };
 
-// Rota para obter dados da Raw Zone (GET /raw-zone)
+// rota para obter dados da Raw Zone (GET /raw-zone)
 app.get('/raw-data', async (req, res) => {
   // Instanciação DENTRO da rota usando a fábrica
   const rawZoneController = makeRawDataController();
   await rawZoneController.getRawData(req, res);
 });
 
+// rota para processar dados (POST /process-data)
 app.post('/process-data', async (req, res) => {
-  // Adicionado 'async' aqui
-  const processDataController = makeProcessDataController(); // Instanciação DENTRO da rota
-  await processDataController.execute(req, res); // Chama o método execute
+  const processDataController = makeProcessDataController();
+  await processDataController.execute(req, res);
 });
 
-// Rota para buscar dados processados de um tipo de API específico (POST /query/:apiName)
+// rota para buscar dados processados de um tipo de API específico (POST /query/:apiName)
 app.post('/query/:apiName', async (req, res) => {
-  // Adicionado 'async'
-  const queryDataController = makeQueryDataController(); // Instanciação DENTRO da rota
-  await queryDataController.execute(req, res); // Chama o método execute
+  const queryDataController = makeQueryDataController();
+  await queryDataController.execute(req, res);
 });
 
-// Rota para buscar um item específico por ID (POST /query/item)
+// rota para buscar um item específico por ID (POST /query/item)
 app.post('/item-lookup', async (req, res) => {
   // Adicionado 'async'
-  const itemQueryController = makeItemQueryController(); // Instanciação DENTRO da rota
-  await itemQueryController.execute(req, res); // Chama o método execute
+  const itemQueryController = makeItemQueryController();
+  await itemQueryController.execute(req, res);
 });
 
 // --- Endpoints de API Simulados ---
 
-// 1. POST /bi/getFiscalInvoice
+// POST /bi/getFiscalInvoice
 app.post('/bi/getFiscalInvoice', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
@@ -89,7 +90,7 @@ app.post('/bi/getFiscalInvoice', validatePayload, (req, res) => {
   res.json(data);
 });
 
-// 2. POST /res/getGuestChecks
+// POST /res/getGuestChecks
 app.post('/res/getGuestChecks', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
@@ -139,7 +140,7 @@ app.post('/res/getGuestChecks', validatePayload, (req, res) => {
   res.json(data);
 });
 
-// 3. POST /org/getChargeBack
+// POST /org/getChargeBack
 app.post('/org/getChargeBack', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
@@ -156,7 +157,7 @@ app.post('/org/getChargeBack', validatePayload, (req, res) => {
   res.json(data);
 });
 
-// 4. POST /trans/getTransactions
+// POST /trans/getTransactions
 app.post('/trans/getTransactions', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
@@ -184,7 +185,7 @@ app.post('/trans/getTransactions', validatePayload, (req, res) => {
   res.json(data);
 });
 
-// 5. POST /inv/getCashManagementDetails
+// POST /inv/getCashManagementDetails
 app.post('/inv/getCashManagementDetails', validatePayload, (req, res) => {
   const { busDt, storeId } = req.body;
   const data = [
@@ -202,7 +203,7 @@ app.post('/inv/getCashManagementDetails', validatePayload, (req, res) => {
   res.json(data);
 });
 
-// Inicia o servidor
+// inicia o servidor
 app.listen(PORT, () => {
   console.log(`Express API server running on port ${PORT}`);
   console.log(`Access at http://localhost:${PORT}`);

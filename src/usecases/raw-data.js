@@ -41,7 +41,7 @@ export class RawDataUseCase {
       );
       return data;
     } catch (error) {
-      // Relança o erro com uma mensagem mais contextual para a camada superior (Controller)
+      // manda o erro de novo com uma mensagem mais contextual para a camada superior (Controller)
       if (error instanceof ValidationError) {
         throw error;
       }

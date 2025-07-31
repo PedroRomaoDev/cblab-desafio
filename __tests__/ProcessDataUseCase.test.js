@@ -35,7 +35,7 @@ describe('ProcessDataUseCase', () => {
     jest.clearAllMocks();
   });
 
-  it('should not process if raw zone base path does not exist', async () => {
+  it('não deve processar se o caminho base da raw zone não existir', async () => {
     fs.access.mockRejectedValue({ code: 'ENOENT' });
 
     await expect(useCase.execute()).toBeTruthy();
@@ -43,30 +43,30 @@ describe('ProcessDataUseCase', () => {
     expect(fs.readdir).not.toHaveBeenCalled();
   });
 
-  it('should throw if fs.access fails with non-ENOENT error', async () => {
-    fs.access.mockRejectedValue(new Error('Disk failure'));
+  it('deve lançar erro se fs.access falhar com erro diferente de ENOENT', async () => {
+    fs.access.mockRejectedValue(new Error('Falha no disco'));
 
     await expect(useCase.execute()).rejects.toThrow(/Falha no Use Case/);
   });
 
-  it('should skip processing if no API folders found', async () => {
+  it('deve pular o processamento se nenhuma pasta de API for encontrada', async () => {
     fs.access.mockResolvedValue();
-    fs.readdir.mockResolvedValue([]); // No API folders
+    fs.readdir.mockResolvedValue([]);
 
     await expect(useCase.execute()).toBeTruthy();
     expect(fs.readdir).toHaveBeenCalled();
   });
 
-  it('should transform and save data with full processing path', async () => {
+  it('deve transformar e salvar dados com caminho completo de processamento', async () => {
     fs.access.mockResolvedValue();
     fs.readdir
       .mockResolvedValueOnce([
         { isDirectory: () => true, name: 'getGuestChecks' },
-      ]) // apiName
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: '2024' }]) // year
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: '07' }]) // month
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: '15' }]) // day
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: 'store123' }]); // store
+      ])
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: '2024' }])
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: '07' }])
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: '15' }])
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: 'store123' }]);
 
     mockRawRepo.getByApiDateStore.mockResolvedValue([{ id: 1, taxes: 10 }]);
     mockProcessedRepo.saveToProcessedZone.mockResolvedValue('/some/path');
@@ -92,14 +92,14 @@ describe('ProcessDataUseCase', () => {
     );
   });
 
-  it('should skip transformation if raw data is empty', async () => {
+  it('deve pular transformação se os dados brutos estiverem vazios', async () => {
     fs.access.mockResolvedValue();
     fs.readdir
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: 'apiX' }]) // api
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: '2023' }]) // year
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: '11' }]) // month
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: '01' }]) // day
-      .mockResolvedValueOnce([{ isDirectory: () => true, name: 'store99' }]); // store
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: 'apiX' }])
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: '2023' }])
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: '11' }])
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: '01' }])
+      .mockResolvedValueOnce([{ isDirectory: () => true, name: 'store99' }]);
 
     mockRawRepo.getByApiDateStore.mockResolvedValue([]);
 
@@ -108,9 +108,9 @@ describe('ProcessDataUseCase', () => {
     expect(mockProcessedRepo.saveToProcessedZone).not.toHaveBeenCalled();
   });
 
-  it('should only process filtered apiName and busDt/storeId', async () => {
+  it('deve processar apenas apiName, busDt e storeId filtrados', async () => {
     fs.access.mockResolvedValue();
-    fs.readdir.mockResolvedValue([]); // won't be used due to filters
+    fs.readdir.mockResolvedValue([]);
     mockRawRepo.getByApiDateStore.mockResolvedValue([{ id: 1 }]);
     mockProcessedRepo.saveToProcessedZone.mockResolvedValue('/fake');
 
@@ -127,7 +127,7 @@ describe('ProcessDataUseCase', () => {
     );
   });
 
-  it('should throw error if saveToProcessedZone fails', async () => {
+  it('deve lançar erro se saveToProcessedZone falhar', async () => {
     fs.access.mockResolvedValue();
     fs.readdir
       .mockResolvedValueOnce([{ isDirectory: () => true, name: 'apiX' }])
@@ -138,9 +138,9 @@ describe('ProcessDataUseCase', () => {
 
     mockRawRepo.getByApiDateStore.mockResolvedValue([{ id: 1 }]);
     mockProcessedRepo.saveToProcessedZone.mockRejectedValue(
-      new Error('Disk full'),
+      new Error('Disco cheio'),
     );
 
-    await expect(useCase.execute()).rejects.toThrow('Disk full');
+    await expect(useCase.execute()).rejects.toThrow('Disco cheio');
   });
 });

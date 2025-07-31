@@ -12,43 +12,43 @@ describe('QueryDataUseCase', () => {
     useCase = new QueryDataUseCase(mockRepository);
   });
 
-  test('should throw if repository is not provided', () => {
+  test('deve lançar erro se o repositório não for fornecido', () => {
     expect(() => new QueryDataUseCase()).toThrow(
-      'QueryDataUseCase requires a ProcessedDataRepository instance.',
+      'QueryDataUseCase requer uma instância de ProcessedDataRepository.',
     );
   });
 
-  test('should throw ValidationError if apiName is missing', async () => {
+  test('deve lançar ValidationError se apiName estiver ausente', async () => {
     await expect(useCase.execute(null)).rejects.toThrow(ValidationError);
   });
 
-  test('should throw ValidationError if apiName is not a string', async () => {
+  test('deve lançar ValidationError se apiName não for uma string', async () => {
     await expect(useCase.execute(123)).rejects.toThrow(ValidationError);
   });
 
-  test('should throw ValidationError if apiName is an empty string', async () => {
+  test('deve lançar ValidationError se apiName for uma string vazia', async () => {
     await expect(useCase.execute('   ')).rejects.toThrow(ValidationError);
   });
 
-  test('should throw ValidationError for invalid busDt type', async () => {
+  test('deve lançar ValidationError para tipo inválido de busDt', async () => {
     await expect(
       useCase.execute('getGuestChecks', { busDt: 20230728 }),
     ).rejects.toThrow(ValidationError);
   });
 
-  test('should throw ValidationError for invalid busDt format', async () => {
+  test('deve lançar ValidationError para formato inválido de busDt', async () => {
     await expect(
       useCase.execute('getGuestChecks', { busDt: '28-07-2023' }),
     ).rejects.toThrow(ValidationError);
   });
 
-  test('should throw ValidationError for empty storeId', async () => {
+  test('deve lançar ValidationError para storeId vazio', async () => {
     await expect(
       useCase.execute('getGuestChecks', { storeId: ' ' }),
     ).rejects.toThrow(ValidationError);
   });
 
-  test('should call repository with correct parameters', async () => {
+  test('deve chamar o repositório com os parâmetros corretos', async () => {
     const expectedData = [{ some: 'value' }];
     mockRepository.getByApiDateStore.mockResolvedValue(expectedData);
 
@@ -65,7 +65,7 @@ describe('QueryDataUseCase', () => {
     expect(result).toEqual(expectedData);
   });
 
-  test('should return data when no filters are provided', async () => {
+  test('deve retornar dados quando nenhum filtro for fornecido', async () => {
     const expectedData = [{ x: 1 }];
     mockRepository.getByApiDateStore.mockResolvedValue(expectedData);
 
@@ -79,8 +79,10 @@ describe('QueryDataUseCase', () => {
     expect(result).toEqual(expectedData);
   });
 
-  test('should rethrow ValidationError from repository', async () => {
-    const validationError = new ValidationError('Repo validation failed');
+  test('deve relançar ValidationError do repositório', async () => {
+    const validationError = new ValidationError(
+      'Validação do repositório falhou',
+    );
     mockRepository.getByApiDateStore.mockRejectedValue(validationError);
 
     await expect(useCase.execute('getGuestChecks')).rejects.toThrow(
@@ -88,13 +90,13 @@ describe('QueryDataUseCase', () => {
     );
   });
 
-  test('should wrap unknown repository errors', async () => {
+  test('deve encapsular erros desconhecidos do repositório', async () => {
     mockRepository.getByApiDateStore.mockRejectedValue(
-      new Error('Unexpected failure'),
+      new Error('Falha inesperada'),
     );
 
     await expect(useCase.execute('getGuestChecks')).rejects.toThrow(
-      'Falha na consulta de dados: Unexpected failure',
+      'Falha na consulta de dados: Falha inesperada',
     );
   });
 });
