@@ -1,4 +1,5 @@
 Campo,Tipo,Descrição,Exemplo,Fonte
+Dicionário de dados para o ERP.json,,,,
 curUTC,string (ISO),Data/hora UTC atual,2024-05-05T06:06:06,raiz
 locRef,string,Referência do local,99 CB CB,raiz
 guestChecks,array,Lista de pedidos (comandas),[...],raiz
@@ -17,14 +18,14 @@ lastUpdatedLcl,string (ISO),Data/hora da última atualização (local),2024-01-0
 clsdFlag,boolean,Indica se a comanda está fechada,true,guestChecks
 gstCnt,number,Número de clientes,1,guestChecks
 subTtl,number,Subtotal,109.9,guestChecks
-nonTxblSlsTtl,number/null,Total de vendas não tributáveis,null,guestChecks
+nonTxblSlsTtl,number/null,Total de vendas não tributáveis,,guestChecks
 chkTtl,number,Total da comanda,109.9,guestChecks
 dscTtl,number,Total de desconto,-10,guestChecks
 payTtl,number,Total pago,109.9,guestChecks
-balDueTtl,number/null,Saldo pendente,null,guestChecks
+balDueTtl,number/null,Saldo pendente,,guestChecks
 rvcNum,number,Revenue center (número),101,guestChecks
 otNum,number,Order Type Number,1,guestChecks
-ocNum,number/null,Order Channel Number,null,guestChecks
+ocNum,number/null,Order Channel Number,,guestChecks
 tblNum,number,Número da mesa,1,guestChecks
 tblName,string,Nome da mesa,90,guestChecks
 empNum,number,Número do funcionário,55555,guestChecks
@@ -40,7 +41,7 @@ detailLines,array,Contém os itens da comanda e detalhes como desconto ou taxa,[
  guestCheckLineItemId,number,ID do item da comanda,9988776655,detailLines
  rvcNum,number,Revenue center,123,detailLines
  dtlOtNum,number,Número do tipo de pedido,1,detailLines
- dtlOcNum,number/null,Número do canal de pedido,null,detailLines
+ dtlOcNum,number/null,Número do canal de pedido,,detailLines
  lineNum,number,Número da linha,1,detailLines
  dtlId,number,ID do detalhe,1,detailLines
  detailUTC,string (ISO),Data/hora do detalhe UTC,2024-01-01T09:09:09,detailLines
