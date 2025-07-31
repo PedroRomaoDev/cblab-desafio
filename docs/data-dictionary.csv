@@ -1,0 +1,65 @@
+Campo,Tipo,Descrição,Exemplo,Fonte
+curUTC,string (ISO),Data/hora UTC atual,2024-05-05T06:06:06,raiz
+locRef,string,Referência do local,99 CB CB,raiz
+guestChecks,array,Lista de pedidos (comandas),[...],raiz
+guestCheckId,number,Identificador da comanda,1122334455,guestChecks
+chkNum,number,Número da comanda,1234,guestChecks
+opnBusDt,string (data),Data de abertura (negócio),2024-01-01,guestChecks
+opnUTC,string (ISO),Data/hora de abertura UTC,2024-01-01T09:09:09,guestChecks
+opnLcl,string (ISO),Data/hora de abertura local,2024-01-01T06:09:09,guestChecks
+clsdBusDt,string (data),Data de fechamento (negócio),2024-01-01,guestChecks
+clsdUTC,string (ISO),Data/hora de fechamento UTC,2024-01-01T12:12:12,guestChecks
+clsdLcl,string (ISO),Data/hora de fechamento local,2024-01-01T09:12:12,guestChecks
+lastTransUTC,string (ISO),Data/hora da última transação (UTC),2024-01-01T12:12:12,guestChecks
+lastTransLcl,string (ISO),Data/hora da última transação (local),2024-01-01T09:12:12,guestChecks
+lastUpdatedUTC,string (ISO),Data/hora da última atualização (UTC),2024-01-01T13:13:13,guestChecks
+lastUpdatedLcl,string (ISO),Data/hora da última atualização (local),2024-01-01T10:13:13,guestChecks
+clsdFlag,boolean,Indica se a comanda está fechada,true,guestChecks
+gstCnt,number,Número de clientes,1,guestChecks
+subTtl,number,Subtotal,109.9,guestChecks
+nonTxblSlsTtl,number/null,Total de vendas não tributáveis,null,guestChecks
+chkTtl,number,Total da comanda,109.9,guestChecks
+dscTtl,number,Total de desconto,-10,guestChecks
+payTtl,number,Total pago,109.9,guestChecks
+balDueTtl,number/null,Saldo pendente,null,guestChecks
+rvcNum,number,Revenue center (número),101,guestChecks
+otNum,number,Order Type Number,1,guestChecks
+ocNum,number/null,Order Channel Number,null,guestChecks
+tblNum,number,Número da mesa,1,guestChecks
+tblName,string,Nome da mesa,90,guestChecks
+empNum,number,Número do funcionário,55555,guestChecks
+numSrvcRd,number,Número de rodadas de serviço,3,guestChecks
+numChkPrntd,number,Número de vezes que a comanda foi impressa,2,guestChecks
+taxes,array,Contém informações sobre as taxas da conta,[...],guestChecks
+ taxNum,number,Número da taxa,28,taxes
+ txblSlsTtl,number,Total de vendas tributáveis,119.9,taxes
+ taxCollTtl,number,Total de imposto coletado,20.81,taxes
+ taxRate,number,Taxa (%),21,taxes
+ type,number,Tipo de taxa (ex: 3 = imposto comum),3,taxes
+detailLines,array,Contém os itens da comanda e detalhes como desconto ou taxa,[...],guestChecks
+ guestCheckLineItemId,number,ID do item da comanda,9988776655,detailLines
+ rvcNum,number,Revenue center,123,detailLines
+ dtlOtNum,number,Número do tipo de pedido,1,detailLines
+ dtlOcNum,number/null,Número do canal de pedido,null,detailLines
+ lineNum,number,Número da linha,1,detailLines
+ dtlId,number,ID do detalhe,1,detailLines
+ detailUTC,string (ISO),Data/hora do detalhe UTC,2024-01-01T09:09:09,detailLines
+ detailLcl,string (ISO),Data/hora do detalhe local,2024-01-01T06:09:09,detailLines
+ lastUpdateUTC,string (ISO),Última atualização UTC,2024-11-01T10:10:10,detailLines
+ lastUpdateLcl,string (ISO),Última atualização local,2024-01-01T07:10:10,detailLines
+ busDt,string (data),Data do negócio,2024-01-01,detailLines
+ wsNum,number,Número da estação de trabalho,7,detailLines
+ dspTtl,number,Total exibido,119.9,detailLines
+ dspQty,number,Quantidade exibida,1,detailLines
+ aggTtl,number,Total agregado,119.9,detailLines
+ aggQty,number,Quantidade agregada,1,detailLines
+ chkEmpId,number,ID do funcionário da comanda,10454318,detailLines
+ chkEmpNum,number,Número do funcionário da comanda,81001,detailLines
+ svcRndNum,number,Número da rodada de serviço,1,detailLines
+ seatNum,number,Número do assento,1,detailLines
+ menuItem,objeto,Contém informações sobre o item de menu,{...},detailLines
+  miNum,number,Número do item de menu,6042,menuItem
+  modFlag,boolean,Indica se há modificações,false,menuItem
+  inclTax,number,Valor de imposto incluso,20.809091,menuItem
+  activeTaxes,string,Lista de impostos aplicáveis,28,menuItem
+  prcLvl,number,Nível de preço,3,menuItem
