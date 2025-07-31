@@ -3,13 +3,9 @@
   "info": {
     "title": "API de Dados do Desafio CBLab",
     "version": "1.0.0",
-    "description": "Esta API serve como a **camada de interface para um pipeline de dados simulado**, projetado para receber ingestão, processamento e consulta de informações de receita de uma rede de restaurantes. A arquitetura segue um padrão de **camadas (Controllers -> Use Cases -> Repositórios)**, garantindo modularidade e testabilidade. Os dados são gerenciados em um **Data Lake improvisado**, com zonas `Raw` (dados brutos) e `Processed` (dados transformados e padronizados), e são disponibilizados para consumo por equipes de Inteligência de Negócios (BI) e outras aplicações. Inclui funcionalidades para disparar transformações e realizar consultas flexíveis sobre os dados curados."
+    "description": "Esta API serve como a **camada de interface para um pipeline de dados simulado**, projetado para receber ingestão, processamento e consulta de informações de receita de uma rede de restaurantes. A arquitetura segue um padrão de **camadas (Repositórios -> Use Cases -> Controllers )**, garantindo modularidade e testabilidade. Os dados são gerenciados em um **Data Lake improvisado**, com zonas `Raw` (dados brutos) e `Processed` (dados transformados e padronizados), e são disponibilizados para consumo por equipes de Inteligência de Negócios (BI) e outras aplicações. Inclui funcionalidades para disparar transformações e realizar consultas flexíveis sobre os dados curados."
   },
   "tags": [
-    {
-      "name": "Consulta de Dados Brutos",
-      "description": "Endpoint para consultar dados brutos da Raw Zone."
-    },
     {
       "name": "Processamento de Dados",
       "description": "Endpoint para disparar o pipeline de transformação de dados."
@@ -17,74 +13,13 @@
     {
       "name": "Consulta de Dados Processados",
       "description": "Endpoints para consultar dados limpos e padronizados da Processed Zone."
+    },
+    {
+      "name": "Consulta de Dados Brutos",
+      "description": "Endpoint para consultar dados brutos da Raw Zone."
     }
   ],
   "paths": {
-    "/raw-data": {
-      "get": {
-        "tags": ["Consulta de Dados Brutos"],
-        "summary": "Obtém dados brutos da Raw Zone por filtros.",
-        "produces": ["application/json"],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "apiName",
-            "type": "string",
-            "enum": [
-              "getFiscalInvoice",
-              "getGuestChecks",
-              "getChargeBack",
-              "getTransactions",
-              "getCashManagementDetails"
-            ],
-            "required": true,
-            "description": "Nome da API para consultar."
-          },
-          {
-            "in": "query",
-            "name": "busDt",
-            "type": "string",
-            "format": "date",
-            "required": true,
-            "description": "Data de negócio (YYYY-MM-DD)."
-          },
-          {
-            "in": "query",
-            "name": "storeId",
-            "type": "string",
-            "required": true,
-            "description": "ID da loja."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Sucesso. Retorna dados brutos.",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "example": {
-                  "id": "uuid-exemplo",
-                  "busDt": "2020-07-31",
-                  "storeId": "store_001",
-                  "totalAmount": 150.75,
-                  "taxes": 15.07
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/responses/BadRequest"
-          },
-          "404": {
-            "$ref": "#/responses/NotFound"
-          },
-          "500": {
-            "$ref": "#/responses/ServerError"
-          }
-        }
-      }
-    },
     "/process-data": {
       "post": {
         "tags": ["Processamento de Dados"],
@@ -130,13 +65,13 @@
         ],
         "responses": {
           "202": {
-            "description": "Processamento de dados iniciado com sucesso.",
+            "description": "Processamento concluído. Total de 36 itens processados.",
             "schema": {
               "type": "object",
               "properties": {
                 "message": {
                   "type": "string",
-                  "example": "Processamento de dados iniciado com sucesso."
+                  "example": "Processamento concluído. Total de 36 itens processados."
                 },
                 "processedCount": { "type": "number", "example": 36 }
               }
@@ -233,10 +168,10 @@
             "$ref": "#/responses/BadRequest"
           },
           "404": {
-            "$ref": "#/responses/NotFound"
+            "$ref": "#/responses/NotFoundProcessed"
           },
           "500": {
-            "$ref": "#/responses/ServerError"
+            "$ref": "#/responses/ServerErrorPadrao"
           }
         }
       }
@@ -288,7 +223,72 @@
             "$ref": "#/responses/NotFoundItemLookup"
           },
           "500": {
-            "$ref": "#/responses/ServerError"
+            "$ref": "#/responses/ServerErrorPadrao"
+          }
+        }
+      }
+    },
+    "/raw-data": {
+      "get": {
+        "tags": ["Consulta de Dados Brutos"],
+        "summary": "Obtém dados brutos da Raw Zone por filtros.",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apiName",
+            "type": "string",
+            "enum": [
+              "getFiscalInvoice",
+              "getGuestChecks",
+              "getChargeBack",
+              "getTransactions",
+              "getCashManagementDetails"
+            ],
+            "required": true,
+            "description": "Nome da API para consultar."
+          },
+          {
+            "in": "query",
+            "name": "busDt",
+            "type": "string",
+            "format": "date",
+            "required": true,
+            "description": "Data de negócio (YYYY-MM-DD)."
+          },
+          {
+            "in": "query",
+            "name": "storeId",
+            "type": "string",
+            "required": true,
+            "description": "ID da loja."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso. Retorna dados brutos.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "example": {
+                  "id": "uuid-exemplo",
+                  "busDt": "2020-07-31",
+                  "storeId": "store_001",
+                  "totalAmount": 150.75,
+                  "taxes": 15.07
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/responses/ServerErrorPadrao"
           }
         }
       }
@@ -326,7 +326,19 @@
         "properties": {
           "message": {
             "type": "string",
-            "example": "Nenhuns dados brutos encontrados para getFiscalInvoice/2025-07-24/store_001."
+            "example": "Nenhum dado bruto encontrado para getFiscalInvoice/2025-07-24/store_001."
+          }
+        }
+      }
+    },
+    "NotFoundProcessed": {
+      "description": "Recurso não encontrado para os filtros fornecidos.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Nenhum dado processado encontrado para getFiscalInvoice/2025-07-24/store_001."
           }
         }
       }
@@ -351,6 +363,18 @@
           "error": {
             "type": "string",
             "example": "Erro interno do servidor ao processar dados."
+          }
+        }
+      }
+    },
+    "ServerErrorPadrao": {
+      "description": "Erro interno do servidor.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Erro interno do servidor."
           }
         }
       }
