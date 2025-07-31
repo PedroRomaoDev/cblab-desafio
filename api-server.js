@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { makeProcessDataController } from './src/factories/controllers/process-data.js';
 import { makeQueryDataController } from './src/factories/controllers/query-data.js'; // Importa a fábrica para QueryData
 import { makeItemQueryController } from './src/factories/controllers/item-query.js'; // Importa a fábrica para ItemQuery
+import { makeRawDataController } from './src/factories/controllers/raw-data.js';
 
 const app = express();
 const PORT = 3001;
@@ -32,6 +33,13 @@ const validatePayload = (req, res, next) => {
   }
   next();
 };
+
+// Rota para obter dados da Raw Zone (GET /raw-zone)
+app.get('/raw-data', async (req, res) => {
+  // Instanciação DENTRO da rota usando a fábrica
+  const rawZoneController = makeRawDataController();
+  await rawZoneController.getRawData(req, res);
+});
 
 app.post('/process-data', async (req, res) => {
   // Adicionado 'async' aqui
@@ -95,7 +103,7 @@ app.post('/res/getGuestChecks', validatePayload, (req, res) => {
         { menuItemId: 'PIZZA_MARG', quantity: 1, price: 40.0 },
         { menuItemId: 'REFRIGERANTE', quantity: 1, price: 10.25 },
       ],
-      taxation: 5.0,
+      taxes: 5.0,
       serviceCharge: 5.02,
       source: 'GuestChecks',
     },
@@ -109,7 +117,7 @@ app.post('/res/getGuestChecks', validatePayload, (req, res) => {
         { menuItemId: 'PASTA_ALFREDO', quantity: 2, price: 45.0 },
         { menuItemId: 'SUCO', quantity: 1, price: 10.5 },
       ],
-      taxation: 10.0,
+      taxes: 10.0,
       serviceCharge: 10.05,
       source: 'GuestChecks',
     },
