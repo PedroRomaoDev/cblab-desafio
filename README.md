@@ -168,6 +168,12 @@ Foi construído um pipeline de dados funcional e conteinerizado, orquestrado pel
 git clone https://github.com/PedroRomaoDev/cblab-desafio
 cd cblab-desafio
 
+### Instale as dependências
+
+```bash
+npm install
+````
+
 ### Inicie os Contêineres
 
 Este comando constrói as imagens personalizadas e inicia os serviços em segundo plano:
