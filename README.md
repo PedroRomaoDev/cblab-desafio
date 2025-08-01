@@ -21,26 +21,28 @@ O foco principal é construir um pipeline **robusto, modular e escalável**, seg
 
 A organização dos arquivos no diretório raiz (`cblab-desafio/`) segue uma estrutura modular e clara:
 
+```
 cblab-desafio/
-├── docs/ # Documentação complementar do projeto
-│ ├── data-dictionary.csv # Dicionário de dados em formato CSV Desafio 1
-│ ├── desafio01.png # Diagrama de modelagem lógica do Desafio 1
-│ ├── desafio01.sql # Transcrição SQL do modelo de dados do Desafio 1
-│ └── swagger.json # Documentação (Swagger) da API
-├── nodered_data/ # Volume persistente para dados e fluxos do Node-RED
-│ ├── raw/ # Zona Bruta do Data Lake (JSONs brutos)
-│ └── processed/ # Zona Processada do Data Lake (JSONs transformados)
-├── src/ # Código-fonte da aplicação Express
-│ ├── controllers/ # Camada de apresentação (lida com requisições HTTP)
-│ ├── factories/ # Funções de fábrica para criar objetos completos (Factory Pattern)
-│ ├── helpers/ # Funções auxiliares (ex: respostas HTTP padronizadas)
-│ ├── repositories/ # Camada de acesso a dados (lida com leitura/escrita de arquivos)
-│ └── usecases/ # Camada de lógica de negócio
-├── tests/ # Testes unitários (Jest)
-├── api-server.js # Ponto de entrada principal da API Express (Composition Root)
-├── docker-compose.yml # Definição e orquestração dos serviços Docker
-├── Dockerfile # Instruções para construir a imagem Docker do api-server
-├── nodered.Dockerfile # Instruções para construir a imagem Docker do Node-RED
+├── docs/                        # Documentação complementar do projeto
+│   ├── data-dictionary.csv     # Dicionário de dados em formato CSV Desafio 1
+│   ├── desafio01.png           # Diagrama de modelagem lógica do Desafio 1
+│   ├── desafio01.sql          # Transcrição SQL do modelo de dados do Desafio 1
+│   └── swagger.json            # Documentação (Swagger) da API
+├── nodered_data/               # Volume persistente para dados e fluxos do Node-RED
+│   ├── raw/                    # Zona Bruta do Data Lake (JSONs brutos)
+│   └── processed/              # Zona Processada do Data Lake (JSONs transformados)
+├── src/                        # Código-fonte da aplicação Express
+│   ├── controllers/            # Camada de apresentação (lida com requisições HTTP)
+│   ├── factories/              # Funções de fábrica para criar objetos completos (Factory Pattern)
+│   ├── helpers/                # Funções auxiliares (ex: respostas HTTP padronizadas)
+│   ├── repositories/           # Camada de acesso a dados (lida com leitura/escrita de arquivos)
+│   └── usecases/               # Camada de lógica de negócio
+├── tests/                      # Testes unitários (Jest)
+├── api-server.js               # Ponto de entrada principal da API Express 
+├── docker-compose.yml          # Definição e orquestração dos serviços Docker
+├── Dockerfile                  # Instruções para construir a imagem Docker do api-server
+└── nodered.Dockerfile          # Instruções para construir a imagem Docker do Node-RED
+```
 
 ## 3. Contexto para os Desafios
 
@@ -186,7 +188,7 @@ docker compose up -d
 1. No Node-RED, vá direto ao canto superior direito e faça o import dos fluxos, presentes no arquivo [meus_fluxos_nodered_backup.json](./meus_fluxos_nodered_backup.json).
 2. Após realizar a importação, clique em nó **implementar** para disparar a ingestão de dados mock.
 3. A pasta raw será criada dentro do volume do container, contendo os dados brutos.
-4. Para visualizar os dados brutos, você pode acessar a pasta nodered_data/raw,
+4. Para visualizar os dados brutos, você pode acessar a pasta nodered_data/raw.
 
 ## Processe os Dados (via API)
 
@@ -208,7 +210,7 @@ npm test
 
 **Resultados:** Você deve ver que todos os testes para os repositórios, use cases e controllers foram executados e passaram com sucesso.
 
-##  Rotas das APIs
+## Rotas das APIs
 
 ### GET /raw-zone (Dados Brutos)
 
@@ -239,4 +241,3 @@ Acompanhe o progresso do desenvolvimento e as tarefas finalizadas neste link:
 ---
 
 Este documento é uma parte da entrega do desafio, complementando o código e as instruções.
-
