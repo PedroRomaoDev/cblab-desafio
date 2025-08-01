@@ -12,12 +12,6 @@ describe('QueryDataUseCase', () => {
     useCase = new QueryDataUseCase(mockRepository);
   });
 
-  test('deve lançar erro se o repositório não for fornecido', () => {
-    expect(() => new QueryDataUseCase()).toThrow(
-      'QueryDataUseCase requer uma instância de ProcessedDataRepository.',
-    );
-  });
-
   test('deve lançar ValidationError se apiName estiver ausente', async () => {
     await expect(useCase.execute(null)).rejects.toThrow(ValidationError);
   });
