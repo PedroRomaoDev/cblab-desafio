@@ -1,8 +1,7 @@
 Campo,Tipo,Descrição,Exemplo,Fonte
-Dicionário de dados para o ERP.json,,,,
 curUTC,string (ISO),Data/hora UTC atual,2024-05-05T06:06:06,raiz
 locRef,string,Referência do local,99 CB CB,raiz
-guestChecks,array,Lista de pedidos (comandas),[...],raiz
+guestChecks,array de objetos,Lista de pedidos (comandas),[...],raiz
 guestCheckId,number,Identificador da comanda,1122334455,guestChecks
 chkNum,number,Número da comanda,1234,guestChecks
 opnBusDt,string (data),Data de abertura (negócio),2024-01-01,guestChecks
@@ -31,13 +30,13 @@ tblName,string,Nome da mesa,90,guestChecks
 empNum,number,Número do funcionário,55555,guestChecks
 numSrvcRd,number,Número de rodadas de serviço,3,guestChecks
 numChkPrntd,number,Número de vezes que a comanda foi impressa,2,guestChecks
-taxes,array,Contém informações sobre as taxas da conta,[...],guestChecks
+taxes,array de objetos,Contém informações sobre as taxas da conta,[...],guestChecks
  taxNum,number,Número da taxa,28,taxes
  txblSlsTtl,number,Total de vendas tributáveis,119.9,taxes
  taxCollTtl,number,Total de imposto coletado,20.81,taxes
  taxRate,number,Taxa (%),21,taxes
  type,number,Tipo de taxa (ex: 3 = imposto comum),3,taxes
-detailLines,array,Contém os itens da comanda e detalhes como desconto ou taxa,[...],guestChecks
+detailLines,array de objetos,Contém os itens da comanda e detalhes como desconto ou taxa,[...],guestChecks
  guestCheckLineItemId,number,ID do item da comanda,9988776655,detailLines
  rvcNum,number,Revenue center,123,detailLines
  dtlOtNum,number,Número do tipo de pedido,1,detailLines
@@ -62,5 +61,14 @@ detailLines,array,Contém os itens da comanda e detalhes como desconto ou taxa,[
   miNum,number,Número do item de menu,6042,menuItem
   modFlag,boolean,Indica se há modificações,false,menuItem
   inclTax,number,Valor de imposto incluso,20.809091,menuItem
-  activeTaxes,string,Lista de impostos aplicáveis,28,menuItem
+  activeTaxes,string (IDs separados por vírgula),Lista de impostos aplicáveis,28,menuItem
   prcLvl,number,Nível de preço,3,menuItem
+ **discount,objeto,Detalhes do desconto aplicado,{...},detailLines**
+ **serviceCharge,objeto,Detalhes da taxa de serviço,{...},detailLines**
+ **tenderMedia,objeto,Contém informações do meio de pagamento,{...},detailLines**
+ **errorCode,objeto,Detalhes do código de erro,{...},detailLines**
+ tenderMedia,objeto,Contém informações do meio de pagamento,{...},detailLines
+  tmNum,number,Código do meio de pagamento,3,tenderMedia
+  tmName,string,Nome do meio de pagamento,Crédito,tenderMedia
+  tmTtl,number,Total pago com o meio de pagamento,109.9,tenderMedia
+
